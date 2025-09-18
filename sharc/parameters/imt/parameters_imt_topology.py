@@ -7,12 +7,13 @@ from sharc.parameters.imt.parameters_indoor import ParametersIndoor
 from sharc.parameters.imt.parameters_macrocell import ParametersMacrocell
 from sharc.parameters.imt.parameters_ntn import ParametersNTN
 from sharc.parameters.imt.parameters_single_bs import ParametersSingleBS
+from sharc.parameters.imt.parameters_gen_macrocell import ParametersGenMacrocell
 
 
 @dataclass
 class ParametersImtTopology(ParametersBase):
     type: typing.Literal[
-        "MACROCELL", "HOTSPOT", "INDOOR", "SINGLE_BS", "NTN"
+        "MACROCELL", "HOTSPOT", "INDOOR", "SINGLE_BS", "NTN", "GEN_MACROCELL"
     ] = "MACROCELL"
 
     macrocell: ParametersMacrocell = field(default_factory=ParametersMacrocell)
@@ -20,6 +21,7 @@ class ParametersImtTopology(ParametersBase):
     indoor: ParametersIndoor = field(default_factory=ParametersIndoor)
     single_bs: ParametersSingleBS = field(default_factory=ParametersSingleBS)
     ntn: ParametersNTN = field(default_factory=ParametersNTN)
+    gen_macrocell: ParametersGenMacrocell = field(default_factory=ParametersGenMacrocell)
 
     def validate(self, ctx):
         match self.type:
@@ -33,5 +35,7 @@ class ParametersImtTopology(ParametersBase):
                 self.single_bs.validate(f"{ctx}.single_bs")
             case "NTN":
                 self.ntn.validate(f"{ctx}.ntn")
+            case "GEN_MACROCELL":
+                self.gen_macrocell.validate(f"{ctx}.gen_macrocell")
             case _:
                 raise NotImplementedError(f"{ctx}.type == '{self.type}' may not be implemented")

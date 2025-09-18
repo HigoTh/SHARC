@@ -11,6 +11,7 @@ from sharc.topology.topology_macrocell import TopologyMacrocell
 from sharc.topology.topology_hotspot import TopologyHotspot
 from sharc.topology.topology_indoor import TopologyIndoor
 from sharc.topology.topology_ntn import TopologyNTN
+from sharc.topology.topology_gen_macrocell import GenTopology
 from sharc.topology.topology_single_base_station import TopologySingleBaseStation
 from sharc.parameters.parameters import Parameters
 
@@ -45,6 +46,11 @@ class TopologyFactory(object):
                 parameters.imt.topology.ntn.bs_azimuth,
                 parameters.imt.topology.ntn.bs_elevation,
                 parameters.imt.topology.ntn.num_sectors,
+            )
+        elif parameters.imt.topology.type == "GEN_MACROCELL":
+            return GenTopology(
+                parameters.imt.topology.gen_macrocell.coord_file_path,
+                parameters.imt.topology.gen_macrocell.cell_radius
             )
         else:
             sys.stderr.write(

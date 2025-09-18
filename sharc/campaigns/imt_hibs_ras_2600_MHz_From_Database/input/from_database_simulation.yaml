@@ -1,0 +1,167 @@
+general:
+  enable_adjacent_channel: false
+  enable_cochannel: true
+  imt_link: DOWNLINK
+  num_snapshots: 10000
+  output_dir: campaigns/imt_hibs_ras_2600_MHz_From_Database/output
+  output_dir_prefix: imt_hibs_ras_2600_MHz_From_Database
+  overwrite_output: false
+  seed: 33
+  system: SINGLE_EARTH_STATION
+imt:
+  #adjacent_antenna_model: BEAMFORMING
+  bandwidth: 100
+  bs:
+    antenna:
+        ###########################################################################
+        # If database should be used to specify the antenna
+        # If True, the table values ​​overwrite the parameters set in the .yaml
+        from_database  : true
+        ###########################################################################
+        # Database file path used to specify the BSs antennas
+        # The table must have the following columns:
+        #   'num_rows': Number of array rows,
+        #   'num_columns': Number of array columns,
+        #   'beamforming_gain': Expected beamforming gain,
+        #   'tx_power': Total transmitted power considering all elements,
+        #   'element_max_g': Maximum element gain,
+        #   'sub_num_rows': Number of elements in the subarray,
+        #   'downtilt': Antenna downtilt
+        database_file  : 'campaigns/imt_hibs_ras_2600_MHz_From_Database/ref_base.csv'
+        vertical_beamsteering_range: !!python/tuple [90, 100]
+        downtilt: 6
+        element_am: 30
+        element_horiz_spacing: 0.5
+        element_max_g: 6.4
+        element_pattern: M2101
+        element_phi_3db: 90
+        element_sla_v: 30
+        element_theta_3db: 65
+        element_vert_spacing: 2.1
+        minimum_array_gain: -200
+        multiplication_factor: 12
+        n_columns: 16
+        n_rows: 8
+        normalization: false
+        subarray:
+          element_vert_spacing: 0.7
+          eletrical_downtilt: 3.0
+          is_enabled: true
+          n_rows: 3
+    conducted_power: 22
+    height: 18
+    load_probability: 1
+    noise_figure: 6
+    ohmic_loss: 0
+  channel_model: UMa
+  downlink:
+    attenuation_factor: 0.6
+    sinr_max: 30
+    sinr_min: -10
+  frequency: 8000
+  guard_band_ratio: 0.1
+  interfered_with: false
+  minimum_separation_distance_bs_ue: 35
+  rb_bandwidth: 0.18
+  shadowing: true
+  spectral_mask: IMT-2020
+  spurious_emissions: -13
+  topology:
+    type: GEN_MACROCELL
+    gen_macrocell:
+        ###########################################################################
+        # Coordinates file path
+        # The file must have the following columns:
+        # 'Latitude': latitude coordinate,
+        # 'Longitude': longitude coordinate,
+        # 'Height': station height
+        # 'Azimuth': station azimuth
+        coord_file_path  : 'campaigns/imt_hibs_ras_2600_MHz_From_Database/ref_base.csv'
+        ###########################################################################    
+        # Cell radius in network topology [m]
+        cell_radius  : 300
+  ue:
+    alpha: 0.8
+    antenna:
+        element_am: 25
+        element_max_g: -4
+        element_pattern: FIXED
+        element_phi_3db: 180
+        element_sla_v: 25
+        element_theta_3db: 360
+        minimum_array_gain: -200
+        multiplication_factor: 12
+        n_columns: 1
+        n_rows: 1
+        normalization: false
+    body_loss: 4
+    distribution_type  : ANGLE_AND_DISTANCE
+    distribution_distance  : SQRT(UNIFORM)
+    distribution_azimuth  : UNIFORM
+    height: 1.5
+    indoor_percent: 70
+    k: 3
+    k_m: 1
+    noise_figure: 13
+    ohmic_loss: 0
+    p_cmax: 23
+    p_o_pusch: -92.2
+    power_dynamic_range: 56
+    tx_power_control: true
+  uplink:
+    attenuation_factor: 0.4
+    sinr_max: 22
+    sinr_min: -10
+
+single_earth_station:
+  antenna:
+    pattern: OMNI
+    gain: 0
+  bandwidth: 40
+  channel_model: P452
+  frequency: 8000
+  polarization_loss: 0
+  geometry:
+    azimuth:
+      fixed: 180
+      type: FIXED
+      uniform_dist:
+        max: 180
+        min: -180
+    elevation:
+      fixed: 0
+      type: FIXED
+      uniform_dist:
+        max: 10
+        min: 3
+    height: 20
+    location:
+      fixed:
+        x: 41500
+        y: 0
+      network:
+        min_dist_to_bs: 0
+      type: FIXED
+      uniform_dist:
+        max_dist_to_center: 2250
+        min_dist_to_center: 0
+  noise_temperature: 512.7630
+  param_p452:
+    Dcr: 101.0
+    Dct: 100.0
+    Hre: 20
+    Hte: 18
+    N0: 352.58
+    air_temperature: 293.15
+    atmospheric_pressure: 1017
+    clutter_loss: true
+    delta_N: 60
+    percentage_p: 20  
+    polarization: horizontal
+    rx_lat: -15.47
+    tx_lat: -15.4
+#    apply_clutter: "one_end"      # Can be "both_ends" or "one_end"
+#    perc_clutter: 0               # Percentage of stations where clutter is applied
+
+  tx_power_density: -200
+

@@ -65,7 +65,14 @@ class StationFactory(object):
         topology: Topology,
         random_number_gen: np.random.RandomState,
     ):
-        param_ant = param_ant_bs.get_antenna_parameters()
+        
+        # Load parameters from table if True, otherwise process normally
+        if param_ant_bs.from_database == True:
+            param_ant, sub_array_params = \
+                param_ant_bs.get_antenna_parameters_from_db()
+        else:
+            param_ant = param_ant_bs.get_antenna_parameters()
+
         num_bs = topology.num_base_stations
         imt_base_stations = StationManager(num_bs)
         imt_base_stations.station_type = StationType.IMT_BS
@@ -79,9 +86,20 @@ class StationFactory(object):
         else:
             imt_base_stations.x = topology.x
             imt_base_stations.y = topology.y
-            imt_base_stations.elevation = -param_ant.downtilt * np.ones(num_bs)
+
+            # Loads elevation values ​​from table if True, otherwise processes 
+            # normally
+            if param_ant_bs.from_database == True:
+                imt_base_stations.elevation = \
+                -np.array([param_ant_i.downtilt for param_ant_i in param_ant])
+            else:
+                imt_base_stations.elevation = -param_ant.downtilt * np.ones(num_bs)
+
             if param.topology.type == 'INDOOR':
                 imt_base_stations.height = topology.height
+            # If GEN_MACROCELL, loads heights defined in the input table
+            elif param.topology.type == 'GEN_MACROCELL':
+                imt_base_stations.height = topology.z
             else:
                 imt_base_stations.height = param.bs.height * np.ones(num_bs)
 
@@ -89,7 +107,26 @@ class StationFactory(object):
         imt_base_stations.active = random_number_gen.rand(
             num_bs,
         ) < param.bs.load_probability
-        imt_base_stations.tx_power = param.bs.conducted_power * np.ones(num_bs)
+
+        # Power processing per user is done at this point
+        # Loads power values ​​from table if True, otherwise processes normally
+        if param_ant_bs.from_database == True:
+
+            # Total power
+            total_power = \
+                np.array( [ param_ant_i.tx_power for param_ant_i in param_ant ] )
+            # Power per user
+            imt_base_stations.tx_power = total_power - 10 * math.log10(param.ue.k)
+        else:
+
+            # Number of antenna elements
+            bs_power_gain = 10 * math.log10(
+                param_ant.n_rows * param_ant.n_columns )
+            # Power per user
+            imt_base_stations.tx_power = \
+                param.bs.conducted_power * np.ones(num_bs) + \
+                bs_power_gain - 10 * math.log10(param.ue.k)
+
         imt_base_stations.rx_power = dict(
             [(bs, -500 * np.ones(param.ue.k)) for bs in range(num_bs)],
         )
@@ -120,12 +157,22 @@ class StationFactory(object):
             num_bs, dtype=AntennaBeamformingImt,
         )
 
-        for i in range(num_bs):
-            imt_base_stations.antenna[i] = \
-                AntennaBeamformingImt(
-                    param_ant, imt_base_stations.azimuth[i],
-                    imt_base_stations.elevation[i], param_ant_bs.subarray
-                )
+        # Loads antenna paremeters ​​from table if True, otherwise processes 
+        # normally
+        if param_ant_bs.from_database == True:
+            for i in range(num_bs):
+                imt_base_stations.antenna[i] = \
+                    AntennaBeamformingImt(
+                        param_ant[i], imt_base_stations.azimuth[i],
+                        imt_base_stations.elevation[i], sub_array_params[i]
+                    )
+        else:
+            for i in range(num_bs):
+                imt_base_stations.antenna[i] = \
+                    AntennaBeamformingImt(
+                        param_ant, imt_base_stations.azimuth[i],
+                        imt_base_stations.elevation[i], param_ant_bs.subarray
+                    )
 
         # imt_base_stations.antenna = [AntennaOmni(0) for bs in range(num_bs)]
         imt_base_stations.bandwidth = param.bandwidth * np.ones(num_bs)

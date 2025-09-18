@@ -14,3 +14,11 @@ AntennaPar = namedtuple(
                         n_columns element_horiz_spacing element_vert_spacing multiplication_factor \
                         minimum_array_gain downtilt",
 )
+
+AntennaParGen = namedtuple(
+    "AntennaParGen",
+    "adjacent_antenna_model normalization normalization_data element_pattern \
+                        element_max_g element_phi_3db element_theta_3db element_am element_sla_v n_rows \
+                        n_columns element_horiz_spacing element_vert_spacing multiplication_factor \
+                        minimum_array_gain downtilt tx_power",
+)

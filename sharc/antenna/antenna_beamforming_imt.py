@@ -572,7 +572,7 @@ if __name__ == '__main__':
 
     # Plot BS TX radiation patterns
     par = bs_param.get_antenna_parameters()
-    bs_array = AntennaBeamformingImt(par, 0, 0, bs_param.sub_array)
+    bs_array = AntennaBeamformingImt(par, 0, 0, bs_param.subarray)
     f = plot.plot_element_pattern(bs_array, "BS", "ELEMENT")
     # f.savefig(figs_dir + "BS_element.pdf", bbox_inches='tight')
     f = plot.plot_element_pattern(bs_array, "TX", "ARRAY")
@@ -580,7 +580,7 @@ if __name__ == '__main__':
 
     # Plot UE TX radiation patterns
     par = ue_param.get_antenna_parameters()
-    ue_array = AntennaBeamformingImt(par, 0, 0, ue_param.sub_array)
+    ue_array = AntennaBeamformingImt(par, 0, 0, ue_param.subarray)
     plot.plot_element_pattern(ue_array, "UE", "ELEMENT")
     plot.plot_element_pattern(ue_array, "UE", "ARRAY")
 

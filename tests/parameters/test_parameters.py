@@ -72,6 +72,9 @@ class ParametersTest(unittest.TestCase):
         self.assertEqual(
             self.parameters.imt.adjacent_antenna_model,
             "BEAMFORMING")
+        self.assertEqual(self.parameters.imt.bs.antenna.from_file, False)
+        self.assertEqual(self.parameters.imt.bs.antenna.database_file, 
+                         'database.csv')
         self.assertEqual(self.parameters.imt.bs.antenna.normalization, False)
         self.assertEqual(self.parameters.imt.ue.antenna.normalization, False)
         self.assertEqual(self.parameters.imt.bs.antenna.normalization_file,
@@ -149,6 +152,11 @@ class ParametersTest(unittest.TestCase):
         self.assertEqual(self.parameters.imt.topology.macrocell.intersite_distance, 543)
         self.assertEqual(self.parameters.imt.topology.macrocell.num_clusters, 7)
         self.assertEqual(self.parameters.imt.topology.macrocell.wrap_around, True)
+
+        """Test ParametersGenMacrocell
+        """
+        self.assertEqual(self.parameters.imt.topology.gen_macrocell.coord_file_path, './test_path.csv')
+        self.assertEqual(self.parameters.imt.topology.gen_macrocell.cell_radius, 500)
 
         """Test ParametersSingleBaseStation
         """

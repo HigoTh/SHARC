@@ -5,13 +5,17 @@ Created on Sat Apr 15 16:29:36 2017
 @author: Calil
 """
 
-from sharc.support.named_tuples import AntennaPar
+from sharc.support.named_tuples import AntennaPar, AntennaParGen
 from numpy import load
 import typing
-
+from typing import List
+import pandas as pd
+import numpy as np
+from pathlib import Path
 from dataclasses import dataclass, field
 from sharc.parameters.parameters_base import ParametersBase
-
+from sharc.parameters.imt.load_antenna_params_imt import load_antenna_params_from_file
+from sharc.parameters.imt.load_antenna_params_imt import AntennaParamsFromFile
 
 @dataclass
 class ParametersAntennaSubarrayImt(ParametersBase):
@@ -91,6 +95,11 @@ class ParametersAntennaImt(ParametersBase):
 
     subarray: ParametersAntennaSubarrayImt = field(default_factory=ParametersAntennaSubarrayImt)
 
+    # Flag for reading parameters from file
+    from_database: bool = False
+    # Path to database file
+    database_file: str = "antenna/database.csv"
+
     def load_subparameters(self, ctx: str, params: dict, quiet=True):
         """
         Loads the parameters when is placed as subparameter
@@ -110,6 +119,10 @@ class ParametersAntennaImt(ParametersBase):
         # Sanity checks for normalization flags
         if not isinstance(self.normalization, bool):
             raise ValueError("normalization must be a boolean value")
+
+        # Sanity checks for database read flag
+        if not isinstance(self.from_database, bool):
+            raise ValueError("from_file must be a boolean value")
 
         # Sanity checks for element patterns
         if self.element_pattern.upper() not in ["M2101", "F1336", "FIXED"]:
@@ -202,3 +215,73 @@ class ParametersAntennaImt(ParametersBase):
         )
 
         return tpl
+
+    def get_antenna_parameters_from_db(self) -> List[ AntennaParGen ]:
+        """
+        Loads antenna parameters from table.
+        """
+        if self.normalization:
+            # Load data, save it in dict and close it
+            data = load(self.normalization_file)
+            data_dict = {key: data[key] for key in data}
+            self.normalization_data = data_dict
+            data.close()
+        else:
+            self.normalization_data = None
+
+        tpl_list_from_file = []
+        sub_array_p_from_file = []
+        # Database file path
+        database_file_path = str( Path(__file__).parent.parent.parent / self.database_file )
+
+        # Load parameters from database
+        ant_params_list = load_antenna_params_from_file( database_file_path )
+
+        for ant_params in ant_params_list:
+
+            # Theoretical beamforming gain
+            th_bf_gain = 10 * np.log10( ant_params.num_columns * ant_params.num_rows )
+            # Desired beamforming gain
+            pt_bf_gain = ant_params.beamforming_gain
+            # Beamforming efficiency reduction (dB)
+            bf_gain_eff = th_bf_gain - pt_bf_gain
+
+            # Gain per element compensated by beamforming efficiency
+            element_max_g = ant_params.element_max_g - bf_gain_eff
+
+            # Total TX power
+            tx_power = ant_params.tx_power
+
+            # Create antenna parameters instance
+            tpl_i =  AntennaParGen(
+                        self.adjacent_antenna_model,
+                        self.normalization,
+                        self.normalization_data,
+                        self.element_pattern,
+                        element_max_g,
+                        self.element_phi_3db,
+                        self.element_theta_3db,
+                        self.element_am,
+                        self.element_sla_v,
+                        ant_params.num_rows,
+                        ant_params.num_columns,
+                        self.element_horiz_spacing,
+                        self.element_vert_spacing,
+                        self.multiplication_factor,
+                        self.minimum_array_gain,
+                        ant_params.downtilt,
+                        tx_power
+                        )
+            tpl_list_from_file.append( tpl_i )
+
+            # Subarray parameters
+            sub_array_p_d = {
+                'is_enabled': self.subarray.is_enabled,
+                'n_rows': ant_params.sub_num_rows,
+                'element_vert_spacing': self.subarray.element_vert_spacing,
+                'eletrical_downtilt': self.subarray.eletrical_downtilt
+            }
+            sub_array_p_i = ParametersAntennaSubarrayImt( **sub_array_p_d )
+            sub_array_p_from_file.append( sub_array_p_i )
+
+        return tpl_list_from_file, sub_array_p_from_file
