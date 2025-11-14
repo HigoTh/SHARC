@@ -50,7 +50,11 @@ class TopologyFactory(object):
         elif parameters.imt.topology.type == "GEN_MACROCELL":
             return GenTopology(
                 parameters.imt.topology.gen_macrocell.coord_file_path,
-                parameters.imt.topology.gen_macrocell.cell_radius
+                parameters.imt.topology.gen_macrocell.cell_radius,
+                parameters.imt.topology.gen_macrocell.ref_lat,
+                parameters.imt.topology.gen_macrocell.ref_lon,
+                parameters.imt.topology.gen_macrocell.ref_dist,
+                delimiter=parameters.imt.topology.gen_macrocell.delimiter
             )
         else:
             sys.stderr.write(

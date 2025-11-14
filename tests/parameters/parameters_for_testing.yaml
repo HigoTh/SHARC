@@ -67,6 +67,17 @@ imt:
             ###########################################################################
             # Cell radius.
             cell_radius: 500
+            # Reference coordinates are used to filter the coordinates in the 
+            # database. If the coordinates are within a distance of ref_dist [m], 
+            # they are considered in the simulation. Otherwise, they are filtered out.
+            # Reference latitude coordinate
+            ref_lat: -15.78
+            # Reference longitude coordinate
+            ref_lon: -47.93
+            # Reference distance [m]
+            ref_dist: 30000
+            # Database (.csv or .xlsx) columns delimiter
+            delimiter: '\t'
         macrocell:
             ###########################################################################
             # Inter-site distance in macrocell network topology [m]

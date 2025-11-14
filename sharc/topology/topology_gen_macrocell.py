@@ -39,6 +39,9 @@ class GenTopology(Topology):
     def __init__( self, 
                   coords_file_path: str,
                   cell_radius: float,
+                  ref_lat: float,
+                  ref_lon: float,
+                  ref_dist: float,
                   delimiter: str = ',' ):
         
         """
@@ -61,6 +64,9 @@ class GenTopology(Topology):
         self.y = np.empty(0)
         self.z = np.empty(0)
         self.num_base_stations = -1
+        self.ref_lat = ref_lat
+        self.ref_lon = ref_lon
+        self.ref_dist = ref_dist
 
         self._delimiter = delimiter
         self.static_base_stations = False
@@ -181,6 +187,11 @@ class GenTopology(Topology):
             # Compute ECEF to ENU rotation matrix
             rot_matrix = self._compute_rotation_matrix( centroid_geo )
 
+            # Convert reference coordinate to the local system
+            ref_coords_ecef = GenTopology.geo2ecef.transform( self.ref_lat, self.ref_lon, 0.0 )
+            ref_ecef_v = np.array( ref_coords_ecef ) - centroid_ecef
+            ref_enu_v = np.matmul( rot_matrix, ref_ecef_v )
+
             x, y, z = [], [], []
             # Convert coordinates
             for i, (lat,lon,alt) in enumerate( zip(self._x_geo, self._y_geo, self._z_geo) ):
@@ -194,9 +205,14 @@ class GenTopology(Topology):
                 # Convert to local ENU
                 enu_v = np.matmul( rot_matrix, ecef_v )
                 
-                x.append( enu_v[0] )
-                y.append( enu_v[1] )
-                z.append( enu_v[2] )
+                # Distance between coordinate and reference coordinate
+                dist = np.sqrt((enu_v[0] - ref_enu_v[0])**2 + (enu_v[1] - ref_enu_v[1])**2)
+
+                if dist <= self.ref_dist:
+
+                    x.append( enu_v[0] )
+                    y.append( enu_v[1] )
+                    z.append( enu_v[2] )
 
             self.x = np.array( x )
             self.y = np.array( y )
@@ -234,8 +250,12 @@ class GenTopology(Topology):
 
 if __name__ == '__main__':
 
-    topology = GenTopology( 'campaigns/imt_hibs_ras_2600_MHz_From_Database/ref_base.csv', 
-                            cell_radius=300 )
+    topology = GenTopology( 'campaigns/radalt_study_database/qgis/filtered_db.csv', 
+                            cell_radius=300,
+                            ref_lon=-46.5919,
+                            ref_lat=-23.6041,
+                            ref_dist=30000,
+                            delimiter='\t' )
     topology.calculate_coordinates()
 
     fig = plt.figure(
