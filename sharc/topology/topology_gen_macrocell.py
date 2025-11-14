@@ -152,6 +152,20 @@ class GenTopology(Topology):
         
         return centroid_ecef, centroid_geo
 
+    def _compute_center( self ) -> None:
+        """
+        Calculates the center of input coordinates projected onto the 
+        ground plane, based on the reference coordinate.
+        """
+
+        # Convert ref coords to ecef
+        centroid_ecef = np.array(GenTopology.geo2ecef.transform( self.ref_lat, self.ref_lon, 0.0 ))
+        # Compute centroid (centroid with zero heigth)
+        centroid_geo = self.ecef2geo.transform( *centroid_ecef )
+        
+        return centroid_ecef, centroid_geo
+
+
     def _compute_rotation_matrix( self, centroid_geo ):
         """
         Calculates the conversion matrix between the ECEF and ENU systems.
@@ -183,7 +197,7 @@ class GenTopology(Topology):
             self.static_base_stations = True
 
             # Calculate the centroid of station positions
-            centroid_ecef, centroid_geo = self._compute_centroid( )
+            centroid_ecef, centroid_geo = self._compute_center( )
             # Compute ECEF to ENU rotation matrix
             rot_matrix = self._compute_rotation_matrix( centroid_geo )
 
