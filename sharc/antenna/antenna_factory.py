@@ -17,6 +17,7 @@ from sharc.antenna.antenna_rra7_3 import AntennaReg_RR_A7_3
 from sharc.antenna.antenna_modified_s465 import AntennaModifiedS465
 from sharc.antenna.antenna_s580 import AntennaS580
 from sharc.antenna.antenna_s672 import AntennaS672
+from sharc.antenna.antenna_ra_m2319 import AntennaRA_M2319
 
 import sys
 
@@ -39,10 +40,12 @@ class AntennaFactory():
                 return AntennaModifiedS465(param.itu_r_s_465_modified)
             #case "RADALT-ITU-R-M.2319":
                 #return ParametersAntennaRadaltM2319(param.) #
+            case "RA_M2319":
+                return AntennaRA_M2319(param.itu_ra_m2319)
             case "ITU-R S.580":
                 return AntennaS580(param.itu_r_s_580)
             case _:
-                sys.stderr.write(
-                    "ERROR\nInvalid antenna pattern for antenna factory: " + param.pattern,
-                )
-                sys.exit(1)
+                raise ValueError(
+                    f"Antenna factory does not support pattern {
+                        param.pattern}"
+                        )
