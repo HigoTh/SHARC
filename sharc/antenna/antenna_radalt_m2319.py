@@ -34,7 +34,7 @@ class AntennaRadaltM2319(Antenna):
         self.g_max = par.element_max_g
         self.phi_3dB = par.element_phi_3db
 
-    def calculate_gain(self, phi: np.array, theta: np.array) -> np.array:
+    def calculate_gain(self, *args, **kwargs) -> np.array:
         """
         Calculates the Radalt radiation pattern.
 
@@ -47,6 +47,7 @@ class AntennaRadaltM2319(Antenna):
         -------
             gain (np.array): Radalt radiation pattern gain value
         """
+        phi = np.absolute(kwargs["off_axis_angle_vec"])
 
         gain = -( 12.0 / self.phi_3dB**2 ) * phi**2 + self.g_max
         

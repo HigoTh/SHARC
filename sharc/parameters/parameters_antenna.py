@@ -11,13 +11,13 @@ class ParametersAntenna(ParametersBase):
     # available antenna radiation patterns
     __SUPPORTED_ANTENNA_PATTERNS = [
         "OMNI", "ITU-R F.699", "ITU-R S.465", "ITU-R S.580", "MODIFIED ITU-R S.465", "ITU-R S.1855",
-        "ITU-R Reg. RR. Appendice 7 Annex 3"
+        "ITU-R Reg. RR. Appendice 7 Annex 3", "RADALT-ITU-R-M.2319"
     ]
 
     # chosen antenna radiation pattern
     pattern: typing.Literal[
         "OMNI", "ITU-R F.699", "ITU-R S.465", "ITU-R S.580", "MODIFIED ITU-R S.465", "ITU-R S.1855",
-        "ITU-R Reg. RR. Appendice 7 Annex 3"
+        "ITU-R Reg. RR. Appendice 7 Annex 3", "RADALT-ITU-R-M.2319"
     ] = None
 
     # antenna gain [dBi]

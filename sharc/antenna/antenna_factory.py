@@ -37,6 +37,8 @@ class AntennaFactory():
                 return AntennaS1855(param.itu_r_s_1855)
             case "MODIFIED ITU-R S.465":
                 return AntennaModifiedS465(param.itu_r_s_465_modified)
+            #case "RADALT-ITU-R-M.2319":
+                #return ParametersAntennaRadaltM2319(param.) #
             case "ITU-R S.580":
                 return AntennaS580(param.itu_r_s_580)
             case _:
