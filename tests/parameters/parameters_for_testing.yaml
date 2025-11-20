@@ -84,6 +84,25 @@ imt:
             ###########################################################################
             # Number of clusters in macro cell topology
             num_clusters: 7
+        # Macrocell Topology parameters. Relevant when imt.topology.type == "MACROCELL"
+        gen_macrocell:
+            ###########################################################################
+            # Coordinates file path
+            coord_file_path: './test_path.csv'
+            ###########################################################################
+            # Cell radius.
+            cell_radius: 500
+            # Reference coordinates are used to filter the coordinates in the 
+            # database. If the coordinates are within a distance of ref_dist [m], 
+            # they are considered in the simulation. Otherwise, they are filtered out.
+            # Reference latitude coordinate
+            ref_lat: -15.78
+            # Reference longitude coordinate
+            ref_lon: -47.93
+            # Reference distance [m]
+            ref_dist: 30000
+            # Database (.csv or .xlsx) columns delimiter
+            delimiter: '\t'
         ###########################################################################
         # Single Base Station Topology parameters. Relevant when imt.topology.type == "SINGLE_BS"
         single_bs:

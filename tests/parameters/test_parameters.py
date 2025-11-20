@@ -213,6 +213,15 @@ class ParametersTest(unittest.TestCase):
         self.assertEqual(
             self.parameters.imt.topology.macrocell.wrap_around, True)
 
+        """Test ParametersGenMacrocell
+        """
+        self.assertEqual(self.parameters.imt.topology.gen_macrocell.coord_file_path, './test_path.csv')
+        self.assertEqual(self.parameters.imt.topology.gen_macrocell.cell_radius, 500)
+        self.assertEqual(self.parameters.imt.topology.gen_macrocell.ref_lat, -15.78)
+        self.assertEqual(self.parameters.imt.topology.gen_macrocell.ref_lon, -47.93)
+        self.assertEqual(self.parameters.imt.topology.gen_macrocell.ref_dist, 30000)
+        self.assertEqual(self.parameters.imt.topology.gen_macrocell.delimiter, 30000)
+
         """Test ParametersSingleBaseStation
         """
         self.assertEqual(
