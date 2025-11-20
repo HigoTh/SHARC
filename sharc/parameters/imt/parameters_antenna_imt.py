@@ -7,7 +7,7 @@ Created on Sat Apr 15 16:29:36 2017
 
 from numpy import load
 import typing
-
+from pathlib import Path
 from dataclasses import dataclass, field
 from sharc.parameters.parameters_base import ParametersBase
 
@@ -94,6 +94,11 @@ class ParametersAntennaImt(ParametersBase):
 
     subarray: ParametersAntennaSubarrayImt = field(
         default_factory=ParametersAntennaSubarrayImt)
+
+    # Flag for reading parameters from file
+    from_database: bool = False
+    # Path to database file
+    database_file: str = "antenna/database.csv"
 
     def __post_init__(self):
         self.normalization_data = None
@@ -218,6 +223,13 @@ class ParametersAntennaImt(ParametersBase):
             data.close()
         else:
             self.normalization_data = None
+
+    def get_antenna_parameters_from_db_if_needed(self):
+
+        tpl_list_from_file = []
+        sub_array_p_from_file = []
+        # Database file path
+        database_file_path = str( Path(__file__).parent.parent.parent / self.database_file )
 
     def get_antenna_parameters(self) -> "ParametersAntennaImt":
         """

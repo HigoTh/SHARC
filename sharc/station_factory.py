@@ -94,6 +94,13 @@ class StationFactory(object):
         StationManager
             IMT base stations manager object.
         """
+        # Load parameters from table if True, otherwise process normally
+        if param_ant_bs.from_database == True:
+            param_ant, sub_array_params = \
+                param_ant_bs.get_antenna_parameters_from_db()
+        else:
+            param_ant = param_ant_bs.get_antenna_parameters()
+
         param_ant = param_ant_bs.get_antenna_parameters()
         num_bs = topology.num_base_stations
         imt_base_stations = StationManager(num_bs)
