@@ -6,7 +6,7 @@
             "source.organizeImports": "explicit"
         },
         "editor.rulers": [
-            120
+            80,120
         ]
     },
     "flake8.args": [
@@ -18,5 +18,9 @@
     "autopep8.args": [
         "--max-line-length 120",
         "--agressive"
+    ],
+    "editor.rulers": [
+        80,
+        120
     ]
 }

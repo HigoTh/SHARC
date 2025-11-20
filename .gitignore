@@ -99,3 +99,6 @@ SYS_*.txt
 /sharc/campaigns/imt_*/output/output_imt*/*.csv
 /sharc/campaigns/imt_*/output/output_imt*/*.yaml
 /sharc/campaigns/imt_*/output/Figs/*.png
+/sharc/campaigns/imt_*/output/Figs/*.png
+/sharc/campaigns/imt_hibs_ras_2600_MHz_GenM/*
+/sharc/campaigns/*
