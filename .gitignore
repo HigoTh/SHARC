@@ -101,3 +101,5 @@ SYS_*.txt
 /sharc/campaigns/imt_*/output/output_imt*/*.yaml
 /sharc/campaigns/imt_*/output/Figs/*.png
 sharc/campaigns/mss_d2d_to_imt/output/*.yaml
+/sharc/campaigns/imt_hibs_ras_2600_MHz_GenM/*
+/sharc/campaigns/radalt_study_database/*
