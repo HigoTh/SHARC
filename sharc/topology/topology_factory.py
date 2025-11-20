@@ -14,8 +14,11 @@ from sharc.topology.topology_indoor import TopologyIndoor
 from sharc.topology.topology_ntn import TopologyNTN
 from sharc.topology.topology_gen_macrocell import GenTopology
 from sharc.topology.topology_single_base_station import TopologySingleBaseStation
+from sharc.topology.topology_countries import TopologyCountries
 from sharc.parameters.parameters import Parameters
-from sharc.support.sharc_geom import GeometryConverter
+from sharc.support.sharc_geom import CoordinateSystem
+from sharc.support.sharc_geom_countries import GeometryConverter
+
 
 
 class TopologyFactory(object):
@@ -23,7 +26,7 @@ class TopologyFactory(object):
 
     @staticmethod
     def createTopology(parameters: Parameters,
-                       geometry_converter: GeometryConverter) -> Topology:
+                       coordinate_system: CoordinateSystem) -> Topology:
         """Create and return a topology object based on the provided parameters."""
         if parameters.imt.topology.type == "SINGLE_BS":
             return TopologySingleBaseStation(
@@ -65,7 +68,14 @@ class TopologyFactory(object):
         elif parameters.imt.topology.type == "MSS_DC":
             return TopologyImtMssDc(
                 parameters.imt.topology.mss_dc,
-                geometry_converter
+                coordinate_system
+            )
+        elif parameters.imt.topology.type == "Macro_countries":
+            geoconv = GeometryConverter()
+            geoconv.set_reference(coordinate_system.ref_lat, coordinate_system.ref_long, coordinate_system.ref_alt)
+            return TopologyCountries(
+                parameters.imt.topology.macrocell_countries,
+                geometry_converter=geoconv
             )
         else:
             sys.stderr.write(
