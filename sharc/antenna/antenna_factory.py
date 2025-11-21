@@ -79,7 +79,7 @@ class AntennaFactory():
         antenna_params: ParametersAntenna,
         azimuth: np.ndarray | float,
         elevation: np.ndarray | float,
-        n_stations: int,
+        n_stations: int
     ):
         """
         Creates many antennas based on passed parameters.
@@ -102,6 +102,30 @@ class AntennaFactory():
             # this makes it much faster
             antennas[:] = AntennaFactory.create_antenna(
                 antenna_params, None, None,
+            )
+
+        return antennas
+
+    @staticmethod
+    def create_n_antennas_from_db(
+        antennas_list: list,
+        azimuth: np.ndarray | float,
+        elevation: np.ndarray | float,
+        n_stations: int,
+    ):
+        """
+        Creates many antennas based on based on the parameters read from the table.
+        """
+        antennas = np.empty((n_stations,), dtype=Antenna)
+        assert n_stations == len(azimuth)
+        assert n_stations == len(elevation)
+        assert n_stations == len(antennas_list)
+
+        for i in range(n_stations):
+            antennas[i] = AntennaBeamformingImt(
+                    antennas_list[i].get_antenna_parameters(),
+                    azimuth[i],
+                    elevation[i],
             )
 
         return antennas

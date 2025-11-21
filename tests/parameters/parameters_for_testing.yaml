@@ -100,7 +100,7 @@ imt:
             # Reference longitude coordinate
             ref_lon: -47.93
             # Reference distance [m]
-            ref_dist: 30000
+            ref_dist: 30000.0
             # Database (.csv or .xlsx) columns delimiter
             delimiter: '\t'
         ###########################################################################
@@ -355,6 +355,14 @@ imt:
             pattern: "ARRAY"
             # pattern: ITU-R-S.1528-Taylor
             array:
+                ###########################################################################
+                # If database should be used to specify the antenna
+                from_database  : FALSE
+                ###########################################################################
+                # Database file path used to specify the BSs antennas
+                database_file  : database.csv
+                ###########################################################################
+                database_delimiter : ','
                 ###########################################################################
                 # If normalization of M2101 should be applied for BS
                 normalization  : FALSE

@@ -9,6 +9,7 @@ from sharc.parameters.imt.parameters_ntn import ParametersNTN
 from sharc.parameters.imt.parameters_imt_mss_dc import ParametersImtMssDc
 from sharc.parameters.imt.parameters_single_bs import ParametersSingleBS
 from sharc.parameters.imt.parameters_Countries_imt import ParametersCountries
+from sharc.parameters.imt.parameters_gen_macrocell import ParametersGenMacrocell
 
 @dataclass
 class ParametersImtTopology(ParametersBase):
@@ -18,7 +19,7 @@ class ParametersImtTopology(ParametersBase):
     nested_parameters_enabled = True
 
     type: typing.Literal[
-        "MACROCELL", "HOTSPOT", "INDOOR", "SINGLE_BS", "NTN", "MSS_DC", "Macro_countries"
+        "MACROCELL", "HOTSPOT", "INDOOR", "SINGLE_BS", "NTN", "MSS_DC", "Macro_countries", "GEN_MACROCELL"
     ] = "MACROCELL"
 
     # these parameters are needed in case the other system requires coordinate
@@ -34,6 +35,7 @@ class ParametersImtTopology(ParametersBase):
     ntn: ParametersNTN = field(default_factory=ParametersNTN)
     mss_dc: ParametersImtMssDc = field(default_factory=ParametersImtMssDc)
     macrocell_countries: ParametersCountries = field(default_factory=ParametersCountries)
+    gen_macrocell: ParametersGenMacrocell = field(default_factory=ParametersGenMacrocell)
 
     def validate(self, ctx):
         """
@@ -63,6 +65,8 @@ class ParametersImtTopology(ParametersBase):
                 self.mss_dc.validate(f"{ctx}.mss_dc")
             case "Macro_countries":
                 pass
+            case "GEN_MACROCELL":
+                self.gen_macrocell.validate(f"{ctx}.gen_macrocell")
             case _:
                 raise NotImplementedError(
                     f"{ctx}.type == '{

@@ -68,13 +68,12 @@ class GenTopology(Topology):
         self.ref_lon = ref_lon
         self.ref_dist = ref_dist
 
-        self._delimiter = delimiter
+        self._delimiter = delimiter.encode().decode("unicode_escape")
         self.static_base_stations = False
         # Load data
         self._x_geo = np.empty(0)
         self._y_geo = np.empty(0)
         self._z_geo = np.empty(0)
-        self._load_data()
 
     def _load_data( self ) -> None:
         """ 
@@ -193,7 +192,7 @@ class GenTopology(Topology):
         """
 
         if not self.static_base_stations:
-
+            self._load_data()
             self.static_base_stations = True
 
             # Calculate the centroid of station positions
@@ -220,13 +219,16 @@ class GenTopology(Topology):
                 enu_v = np.matmul( rot_matrix, ecef_v )
                 
                 # Distance between coordinate and reference coordinate
-                dist = np.sqrt((enu_v[0] - ref_enu_v[0])**2 + (enu_v[1] - ref_enu_v[1])**2)
+                # dist = np.sqrt((enu_v[0] - ref_enu_v[0])**2 + (enu_v[1] - ref_enu_v[1])**2)
 
-                if dist <= self.ref_dist:
+                # if dist <= self.ref_dist:
 
-                    x.append( enu_v[0] )
-                    y.append( enu_v[1] )
-                    z.append( enu_v[2] )
+                #     x.append( enu_v[0] )
+                #     y.append( enu_v[1] )
+                #     z.append( enu_v[2] )
+                x.append( enu_v[0] )
+                y.append( enu_v[1] )
+                z.append( enu_v[2] )
 
             self.x = np.array( x )
             self.y = np.array( y )
@@ -234,6 +236,9 @@ class GenTopology(Topology):
 
             # Number of base stations
             self.num_base_stations = len( self.x )
+
+            if self.num_base_stations <= 0:
+                raise ValueError(f"No coordinates are in the region centered on ({self.ref_lat, self.ref_lonef})")
 
         return
     

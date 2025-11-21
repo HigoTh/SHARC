@@ -63,7 +63,7 @@ from sharc.support.sharc_geom import CoordinateSystem
 from sharc.mask.spectral_mask_imt2030 import SpectralMaskImt2030
 from sharc.support.sharc_utils import wrap2_180
 from sharc.topology.topology_UE_countries import ParametersUECountries, TopologyUECountries
-
+from sharc.parameters.imt.load_antenna_params_imt import load_antenna_params_from_file
 
 class StationFactory(object):
     """
@@ -95,14 +95,10 @@ class StationFactory(object):
         StationManager
             IMT base stations manager object.
         """
-        # Load parameters from table if True, otherwise process normally
-        if param_ant_bs.from_database == True:
-            param_ant, sub_array_params = \
-                param_ant_bs.get_antenna_parameters_from_db()
-        else:
-            param_ant = param_ant_bs.get_antenna_parameters()
 
         param_ant = param_ant_bs.get_antenna_parameters()
+        # TODO: Verificar uma forma mais otimizada de executar a leitura
+        param_ant.get_antenna_parameters_from_db()
         num_bs = topology.num_base_stations
         imt_base_stations = StationManager(num_bs)
         imt_base_stations.station_type = StationType.IMT_BS
@@ -128,11 +124,22 @@ class StationFactory(object):
             imt_base_stations.latitude = topology.lats
             imt_base_stations.longitude = topology.lons
             imt_base_stations.height = param.bs.height * np.ones(num_bs)
+        elif param.topology.type == "GEN_MACROCELL":
+            imt_base_stations.x = topology.x
+            imt_base_stations.y = topology.y
+            imt_base_stations.z = topology.z
+            imt_base_stations.height = topology.z
+            # Loads elevation values ​​from table if True, otherwise processes 
+            # normally
+            if param_ant.from_database:
+                imt_base_stations.elevation = \
+                    -np.array([param_ant_i.downtilt for param_ant_i in param_ant.from_db_antennas])
+            else:
+                imt_base_stations.elevation = -param_ant.downtilt * np.ones(num_bs)
         else:
             imt_base_stations.x = topology.x
             imt_base_stations.y = topology.y
             imt_base_stations.z = topology.z + param.bs.height
-            imt_base_stations.elevation = -param_ant.downtilt * np.ones(num_bs)
             if param.topology.type == 'INDOOR':
                 imt_base_stations.height = topology.height
             else:
@@ -142,7 +149,22 @@ class StationFactory(object):
         imt_base_stations.active = random_number_gen.rand(
             num_bs,
         ) < param.bs.load_probability
-        imt_base_stations.tx_power = param.bs.conducted_power * np.ones(num_bs)
+
+        if param_ant_bs.from_database == True:
+            # Total power
+            total_power = \
+                np.array( [ param_ant_i.tx_power for param_ant_i in param_ant.from_db_antennas ] )
+            # Power per user
+            imt_base_stations.tx_power = total_power - 10 * math.log10(param.ue.k)
+        else:
+            # Number of antenna elements
+            bs_power_gain = 10 * math.log10(
+                param_ant.n_rows * param_ant.n_columns )
+            # Power per user
+            imt_base_stations.tx_power = \
+                param.bs.conducted_power * np.ones(num_bs) + \
+                bs_power_gain - 10 * math.log10(param.ue.k)
+
         imt_base_stations.rx_power = dict(
             [(bs, -500 * np.ones(param.ue.k)) for bs in range(num_bs)],
         )
@@ -173,12 +195,22 @@ class StationFactory(object):
             num_bs, dtype=Antenna,
         )
 
-        imt_base_stations.antenna = AntennaFactory.create_n_antennas(
-            param.bs.antenna,
-            imt_base_stations.azimuth,
-            imt_base_stations.elevation,
-            num_bs
-        )
+        # Loads antenna parameters ​​from table if True, otherwise processes 
+        # normally
+        if param_ant_bs.from_database == True:
+            imt_base_stations.antenna = AntennaFactory.create_n_antennas_from_db(
+                param_ant.from_db_antennas,
+                imt_base_stations.azimuth,
+                imt_base_stations.elevation,
+                num_bs
+            )
+        else:
+            imt_base_stations.antenna = AntennaFactory.create_n_antennas(
+                param.bs.antenna,
+                imt_base_stations.azimuth,
+                imt_base_stations.elevation,
+                num_bs
+            )
 
         # imt_base_stations.antenna = [AntennaOmni(0) for bs in range(num_bs)]
         imt_base_stations.bandwidth = param.bandwidth * np.ones(num_bs)

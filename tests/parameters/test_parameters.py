@@ -100,6 +100,9 @@ class ParametersTest(unittest.TestCase):
             self.parameters.imt.adjacent_antenna_model,
             "BEAMFORMING",
         )
+        self.assertEqual(self.parameters.imt.bs.antenna.array.from_database, False)
+        self.assertEqual(self.parameters.imt.bs.antenna.array.database_file, "database.csv")
+        self.assertEqual(self.parameters.imt.bs.antenna.array.database_delimiter, ",")
         self.assertEqual(
             self.parameters.imt.bs.antenna.array.normalization, False)
         self.assertEqual(
@@ -230,8 +233,8 @@ class ParametersTest(unittest.TestCase):
         self.assertEqual(self.parameters.imt.topology.gen_macrocell.cell_radius, 500)
         self.assertEqual(self.parameters.imt.topology.gen_macrocell.ref_lat, -15.78)
         self.assertEqual(self.parameters.imt.topology.gen_macrocell.ref_lon, -47.93)
-        self.assertEqual(self.parameters.imt.topology.gen_macrocell.ref_dist, 30000)
-        self.assertEqual(self.parameters.imt.topology.gen_macrocell.delimiter, 30000)
+        self.assertEqual(self.parameters.imt.topology.gen_macrocell.ref_dist, 30000.0)
+        self.assertEqual(self.parameters.imt.topology.gen_macrocell.delimiter, '/t')
 
         """Test ParametersSingleBaseStation
         """
@@ -643,11 +646,8 @@ class ParametersTest(unittest.TestCase):
         self.assertEqual(self.parameters.mss_d2d.beam_radius, 19001)
         self.assertEqual(self.parameters.mss_d2d.tx_power_density, -30)
         self.assertEqual(self.parameters.mss_d2d.num_sectors, 19)
-<<<<<<< HEAD
         self.assertEqual(self.parameters.mss_d2d.antenna_s1528.antenna_l_s, -6.75)
         self.assertEqual(self.parameters.mss_d2d.antenna_s1528.antenna_3_dB_bw, 4.4127)
-=======
->>>>>>> origin/feat/DensPop_IMT_topology
         self.assertEqual(
             self.parameters.mss_d2d.antenna.pattern,
             'ITU-R-S.1528-Taylor')

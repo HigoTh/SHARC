@@ -7,10 +7,13 @@ Created on Sat Apr 15 16:29:36 2017
 
 from numpy import load
 import typing
-from pathlib import Path
 from dataclasses import dataclass, field
 from sharc.parameters.parameters_base import ParametersBase
-
+import numpy as np
+from sharc.parameters.imt.load_antenna_params_imt import load_antenna_params_from_file
+from sharc.parameters.imt.load_antenna_params_imt import AntennaParGen
+from pathlib import Path
+import copy
 
 @dataclass
 class ParametersAntennaSubarrayImt(ParametersBase):
@@ -99,9 +102,14 @@ class ParametersAntennaImt(ParametersBase):
     from_database: bool = False
     # Path to database file
     database_file: str = "antenna/database.csv"
+    # Database delimiter
+    database_delimiter: str = '\t'
+    # TX power [dBm] (Database only)
+    tx_power: float = 10.0
 
     def __post_init__(self):
         self.normalization_data = None
+        self.from_db_antennas = None
 
     def load_subparameters(self, ctx: str, params: dict, quiet=True):
         """
@@ -224,12 +232,51 @@ class ParametersAntennaImt(ParametersBase):
         else:
             self.normalization_data = None
 
-    def get_antenna_parameters_from_db_if_needed(self):
+    def get_antenna_parameters_from_db(self):
+        """
+        Loads antenna parameters from database.
+        """
 
-        tpl_list_from_file = []
-        sub_array_p_from_file = []
-        # Database file path
-        database_file_path = str( Path(__file__).parent.parent.parent / self.database_file )
+        if self.from_database:
+
+            # Antenna parameters variations
+            ant_params_list = []
+
+            # Database file path
+            database_file_path = str( Path(__file__).parent.parent.parent / self.database_file )
+
+            # Load parameters from database
+            ant_params_db = load_antenna_params_from_file( database_file_path, self.database_delimiter )
+
+            for ant_params in ant_params_db:
+
+                # Theoretical beamforming gain
+                th_bf_gain = 10 * np.log10( ant_params.num_columns * ant_params.num_rows )
+                # Desired beamforming gain
+                pt_bf_gain = ant_params.beamforming_gain
+                # Beamforming efficiency reduction (dB)
+                bf_gain_eff = th_bf_gain - pt_bf_gain
+
+                # Gain per element compensated by beamforming efficiency
+                element_max_g = ant_params.element_max_g - bf_gain_eff
+
+
+                # Create copy
+                ant_params_copy = copy.deepcopy(self)
+                # Change parameters based on database
+                ant_params_copy.element_max_g = element_max_g   # Element max. gain from DB
+                ant_params_copy.n_rows = ant_params.num_rows   # Number of rows from DB
+                ant_params_copy.n_columns = ant_params.num_columns   # Number of columns from DB
+                ant_params_copy.downtilt = ant_params.downtilt   # Number of rows from DB
+                ant_params_copy.subarray.n_rows = ant_params.sub_num_rows # Subarray number of rows from DB
+                ant_params_copy.tx_power = ant_params.tx_power # Total TX power
+                # Append to the list
+                ant_params_list.append(ant_params_copy)
+
+            self.from_db_antennas = ant_params_list
+        
+        else:
+            self.from_db_antennas = None
 
     def get_antenna_parameters(self) -> "ParametersAntennaImt":
         """
