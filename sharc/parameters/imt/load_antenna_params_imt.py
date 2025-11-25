@@ -85,8 +85,6 @@ class AntennaParamsFromFile:
         if not isinstance(self.element_max_g, (int, float)):
             raise ValueError("Value must be a number")
 
-    
-
 def load_antenna_params_from_file(file_path: str, delimiter: str = ',') -> list[ AntennaParamsFromFile ]:
                 
     # Get the field names of the AntennaParamsFromFile class
@@ -127,6 +125,3 @@ def load_antenna_params_from_file(file_path: str, delimiter: str = ',') -> list[
     ant_params_list = [AntennaParamsFromFile(**row) for row in ant_params_df.to_dict('records')]
     
     return ant_params_list
-
-        
-

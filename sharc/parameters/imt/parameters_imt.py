@@ -9,7 +9,7 @@ from sharc.parameters.parameters_p619 import ParametersP619
 from sharc.parameters.imt.parameters_antenna_imt import ParametersAntennaImt
 from sharc.parameters.parameters_antenna import ParametersAntenna
 from sharc.parameters.imt.parameters_imt_topology import ParametersImtTopology
-
+from sharc.parameters.database.parameters_database import Database
 
 @dataclass
 class ParametersImt(ParametersBase):
@@ -152,6 +152,9 @@ class ParametersImt(ParametersBase):
     # TODO: create parameters for where this is needed
     los_adjustment_factor: float = 18.0
     shadowing: bool = True
+
+    # Database
+    database: Database = field(default_factory=Database, init=False)
 
     def load_parameters_from_file(self, config_file: str):
         """Load the parameters from file an run a sanity check

@@ -229,12 +229,10 @@ class ParametersTest(unittest.TestCase):
 
         """Test ParametersGenMacrocell
         """
-        self.assertEqual(self.parameters.imt.topology.gen_macrocell.coord_file_path, './test_path.csv')
         self.assertEqual(self.parameters.imt.topology.gen_macrocell.cell_radius, 500)
         self.assertEqual(self.parameters.imt.topology.gen_macrocell.ref_lat, -15.78)
         self.assertEqual(self.parameters.imt.topology.gen_macrocell.ref_lon, -47.93)
         self.assertEqual(self.parameters.imt.topology.gen_macrocell.ref_dist, 30000.0)
-        self.assertEqual(self.parameters.imt.topology.gen_macrocell.delimiter, '/t')
 
         """Test ParametersSingleBaseStation
         """
@@ -283,6 +281,13 @@ class ParametersTest(unittest.TestCase):
         self.assertEqual(self.parameters.imt.topology.ntn.bs_azimuth, 45)
         self.assertEqual(self.parameters.imt.topology.ntn.bs_elevation, 45)
         self.assertEqual(self.parameters.imt.topology.ntn.num_sectors, 19)
+
+        """
+        Test parameters database
+        """
+        self.assertEqual(self.parameters.database.database_file_name, './database.csv')
+        self.assertEqual(self.parameters.database.delimiter, '\t')
+
         """
         Test parameters mss dc
         """

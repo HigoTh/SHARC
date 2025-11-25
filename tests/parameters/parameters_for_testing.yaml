@@ -19,6 +19,13 @@ general:
     ###########################################################################
     # if FALSE, then a new output directory is created
     overwrite_output  : TRUE
+database:
+    ###########################################################################
+    # Path to the database file
+    database_file_name  : './database.csv'
+    ###########################################################################
+    # Database delimiter (for .csv files)
+    delimiter : '\t'
 imt:
     ###########################################################################
     # Minimum 2D separation distance from BS to UE [m]
@@ -87,9 +94,6 @@ imt:
         # Macrocell Topology parameters. Relevant when imt.topology.type == "MACROCELL"
         gen_macrocell:
             ###########################################################################
-            # Coordinates file path
-            coord_file_path: './test_path.csv'
-            ###########################################################################
             # Cell radius.
             cell_radius: 500
             # Reference coordinates are used to filter the coordinates in the 
@@ -101,8 +105,6 @@ imt:
             ref_lon: -47.93
             # Reference distance [m]
             ref_dist: 30000.0
-            # Database (.csv or .xlsx) columns delimiter
-            delimiter: '\t'
         ###########################################################################
         # Single Base Station Topology parameters. Relevant when imt.topology.type == "SINGLE_BS"
         single_bs:

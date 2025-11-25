@@ -22,7 +22,7 @@ from sharc.parameters.parameters_single_earth_station import ParametersSingleEar
 from sharc.parameters.parameters_mss_ss import ParametersMssSs
 from sharc.parameters.parameters_mss_d2d import ParametersMssD2d
 from sharc.parameters.parameters_single_space_station import ParametersSingleSpaceStation
-
+from sharc.parameters.database.parameters_database import ParametersDatabase
 
 class Parameters(object):
     """
@@ -46,6 +46,7 @@ class Parameters(object):
         self.metsat_ss = ParametersMetSatSS()
         self.mss_ss = ParametersMssSs()
         self.mss_d2d = ParametersMssD2d()
+        self.database = ParametersDatabase()
 
     def set_file_name(self, file_name: str):
         """sets the configuration file name
@@ -120,6 +121,14 @@ class Parameters(object):
         # MSS_SS
         #######################################################################
         self.mss_ss.load_parameters_from_file(self.file_name)
+
+        #######################################################################
+        # Database
+        #######################################################################
+        self.database.load_parameters_from_file(self.file_name)
+        # Connect imt parameters to the database
+        self.imt.database = self.database
+
 
         #######################################################################
         # MSS_D2d

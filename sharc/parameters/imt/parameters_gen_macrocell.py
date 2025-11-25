@@ -8,8 +8,6 @@ class ParametersGenMacrocell(ParametersBase):
     """
     Data class for gen_macrocell topology parameters.
     """
-    # Coordinates file path [.csv or .xlsx]
-    coord_file_path: str = None
     # Cell radius [m]
     cell_radius: int = 100
     # Reference latitude coordinate [°]
@@ -18,16 +16,8 @@ class ParametersGenMacrocell(ParametersBase):
     ref_lon: float = None
     # Reference distance [m]
     ref_dist: float = 30000.0
-    # Database (.csv or .xlsx) columns delimiter
-    delimiter: str = '\t'
     
     def validate(self, ctx):
-
-        if not isinstance(self.coord_file_path, str):
-            raise ValueError(f"{ctx}.coord_file_path should be a string")
-
-        if not self.coord_file_path.lower().endswith(('.csv', '.xlsx')):
-            raise ValueError(f"{ctx}.coord_file_path should be a .csv or .xlsx file")
 
         if not isinstance(self.cell_radius, int):
             raise ValueError(f"{ctx}.cell_radius should be a number")

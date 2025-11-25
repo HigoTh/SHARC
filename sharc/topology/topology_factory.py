@@ -57,14 +57,14 @@ class TopologyFactory(object):
                 parameters.imt.topology.ntn.num_sectors,
             )
         elif parameters.imt.topology.type == "GEN_MACROCELL":
-            return GenTopology(
-                parameters.imt.topology.gen_macrocell.coord_file_path,
-                parameters.imt.topology.gen_macrocell.cell_radius,
-                parameters.imt.topology.gen_macrocell.ref_lat,
-                parameters.imt.topology.gen_macrocell.ref_lon,
-                parameters.imt.topology.gen_macrocell.ref_dist,
-                delimiter=parameters.imt.topology.gen_macrocell.delimiter
-            )
+            if not parameters.database.database_loaded:
+                raise ValueError(f"TopologyFactory: \
+                                   Macrocell topology should be used with an database")
+            return GenTopology( parameters.database.database.database_df,
+                        parameters.imt.topology.gen_macrocell.cell_radius,
+                        parameters.imt.topology.gen_macrocell.ref_lat,
+                        parameters.imt.topology.gen_macrocell.ref_lon,
+                        parameters.imt.topology.gen_macrocell.ref_dist )
         elif parameters.imt.topology.type == "MSS_DC":
             return TopologyImtMssDc(
                 parameters.imt.topology.mss_dc,

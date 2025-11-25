@@ -1,5 +1,7 @@
 
 """Antenna factory module for creating antenna instances based on parameters."""
+from dataclasses import replace
+
 from sharc.parameters.parameters_antenna import ParametersAntenna
 from sharc.antenna.antenna import Antenna
 
@@ -108,7 +110,8 @@ class AntennaFactory():
 
     @staticmethod
     def create_n_antennas_from_db(
-        antennas_list: list,
+        ref_antenna_params: ParametersAntenna,
+        db_antenna_params: list,
         azimuth: np.ndarray | float,
         elevation: np.ndarray | float,
         n_stations: int,
@@ -119,13 +122,19 @@ class AntennaFactory():
         antennas = np.empty((n_stations,), dtype=Antenna)
         assert n_stations == len(azimuth)
         assert n_stations == len(elevation)
-        assert n_stations == len(antennas_list)
+        assert n_stations == len(db_antenna_params)
 
         for i in range(n_stations):
-            antennas[i] = AntennaBeamformingImt(
-                    antennas_list[i].get_antenna_parameters(),
-                    azimuth[i],
-                    elevation[i],
-            )
+
+            ant_params_io = ref_antenna_params.array.get_antenna_parameters()
+            ant_params_in_subarray = replace(ant_params_io.subarray, n_rows=db_antenna_params[i].element_max_g )
+            ant_params_in = replace(ant_params_io,
+                                    element_max_g=db_antenna_params[i].element_max_g,
+                                    n_rows=db_antenna_params[i].n_rows,
+                                    n_columns=db_antenna_params[i].n_columns,
+                                    downtilt=db_antenna_params[i].downtilt,
+                                    subarray=ant_params_in_subarray )
+
+            antennas[i] = AntennaBeamformingImt( ant_params_in, azimuth[i], elevation[i] )
 
         return antennas

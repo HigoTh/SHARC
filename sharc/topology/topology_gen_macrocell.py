@@ -13,22 +13,19 @@ from pathlib import Path
 
 class GenTopology(Topology):
     """
-    Generates a network topology based on a list of  arbitrary geographic 
-    coordinates.
+    Generates a network topology based on a list of arbitrary geographic 
+    coordinates define on a database.
     """
 
     # Transformers between Geo coordinates (WGS84) and ECEF
     geo2ecef = Transformer.from_crs(CRS.from_epsg(4326), CRS.from_epsg(4978))
     ecef2geo = Transformer.from_crs(CRS.from_epsg(4978), CRS.from_epsg(4326))
 
-    # Allowed table formats
-    ALLOWED_FORMATS = ['.csv', '.xlsx']
-
     # Table fields labels
-    LAT_LABEL = 'Latitude'
-    LON_LABEL = 'Longitude'
-    HEIGTH_LABEL = 'Altura'
-    AZ_LABEL = 'Azimute'
+    LAT_LABEL = 'latitude'
+    LON_LABEL = 'longitude'
+    HEIGTH_LABEL = 'altura'
+    AZ_LABEL = 'azimute'
     COL_LABELS = [
         LAT_LABEL,
         LON_LABEL,
@@ -36,28 +33,26 @@ class GenTopology(Topology):
         AZ_LABEL
     ]
 
-    def __init__( self, 
-                  coords_file_path: str,
+    def __init__( self,
+                  db_dataframe: pd.DataFrame,
                   cell_radius: float,
                   ref_lat: float,
                   ref_lon: float,
-                  ref_dist: float,
-                  delimiter: str = ',' ):
+                  ref_dist: float ):
         
         """
         Defines the generic macrocellular model based on reading a database.
 
         Parameters
         ----------
-            coords_file_path : Path to coordinates file (.csv or .xlsx)
+            db_dataframe : Database dataframe.
             cell_radius : Cell radius.
-            delimiter : CSV file delimiter
+            ref_lat : Reference latitude.
+            ref_lon : Reference longitude.
+            ref_dist : Reference distance.
         """
-        if Path(coords_file_path).suffix not in GenTopology.ALLOWED_FORMATS:
-            error_message = "The input file must be .csv or .xlsx."
-            raise ValueError(error_message)
         
-        self.coords_file_path = str(Path(__file__).parent.parent/coords_file_path)
+        self.db_dataframe = db_dataframe
         self.cell_radius = cell_radius
         self.azimuth = np.empty(0)
         self.x = np.empty(0)
@@ -68,7 +63,6 @@ class GenTopology(Topology):
         self.ref_lon = ref_lon
         self.ref_dist = ref_dist
 
-        self._delimiter = delimiter.encode().decode("unicode_escape")
         self.static_base_stations = False
         # Load data
         self._x_geo = np.empty(0)
@@ -80,57 +74,26 @@ class GenTopology(Topology):
         Loads geographic data from the input table.
         """
 
-        # Load data from .csv
-        if self.coords_file_path.lower().endswith('.csv'):
+        # Check latitude coordinates
+        if (self.db_dataframe[GenTopology.LAT_LABEL] > 90.0).any() or \
+           (self.db_dataframe[GenTopology.LAT_LABEL] < -90.0).any():
+            raise ValueError(f"Latitudes must be between -90° and 90°")
         
-            coords_df = pd.read_csv( self.coords_file_path,
-                                    delimiter=self._delimiter,
-                                    usecols=GenTopology.COL_LABELS, 
-                                    dtype={GenTopology.LAT_LABEL: float, 
-                                           GenTopology.LON_LABEL: float, 
-                                           GenTopology.AZ_LABEL: float,
-                                           GenTopology.HEIGTH_LABEL: float} )
-        # Load data from .xlsx
-        elif self.coords_file_path.lower().endswith('.xlsx'):
+        if (self.db_dataframe[GenTopology.LON_LABEL] > 180.0).any() or \
+           (self.db_dataframe[GenTopology.LON_LABEL] < -180.0).any():
+            raise ValueError(f"Longitudes must be between -180° and 180°")
 
-            coords_df = pd.read_excel( self.coords_file_path,
-                                       usecols=GenTopology.COL_LABELS, 
-                                       dtype={GenTopology.LAT_LABEL: float, 
-                                           GenTopology.LON_LABEL: float, 
-                                           GenTopology.AZ_LABEL: float,
-                                           GenTopology.HEIGTH_LABEL: float} )
+        if (self.db_dataframe[GenTopology.HEIGTH_LABEL] < 0.0).any():
+            raise ValueError(f"BSs heights must a value greater than zero.")
 
-        # Read and check coordinates
-        x_geo, y_geo, z_geo, az_v = [], [], [], []
-        for index, row in coords_df.iterrows():
-            
-            lat, lon, ht, az = ( row[ GenTopology.LAT_LABEL ], 
-                                  row[ GenTopology.LON_LABEL ], 
-                                  row[ GenTopology.HEIGTH_LABEL ], 
-                                  row[ GenTopology.AZ_LABEL ] )
-            # Check inputs            
-            if not isinstance( lat, float ) or not ( -90.0 <= lat <= 90.0 ):
-                raise ValueError(f"Latitude must be between -90° and 90°")
-                        
-            if not isinstance( lon, float ) or not ( -180.0 <= lon <= 180.0 ):
-                raise ValueError(f"Longitude must be between -180° and 180°")
-            
-            if not isinstance( ht, float ) or not ( ht > 0.0 ):
-                raise ValueError(f"Height must a value greater than zero.")
+        if (self.db_dataframe[GenTopology.AZ_LABEL] > 360.0).any() or \
+           (self.db_dataframe[GenTopology.AZ_LABEL] < 0.0).any():
+            raise ValueError(f"Azimuth must be between 0° and 360°")
 
-            if not isinstance( az, float ) or not ( 0.0 <= az <= 360.0 ):
-                raise ValueError(f"Azimuth must be between 0° and 360°")
-
-            # Append data
-            x_geo.append( lat )
-            y_geo.append( lon )
-            z_geo.append( ht )
-            az_v.append( az )
-
-        self._x_geo = np.array( x_geo )
-        self._y_geo = np.array( y_geo )
-        self._z_geo = np.array( z_geo )
-        self.azimuth = np.array( az_v )
+        self._x_geo = self.db_dataframe[GenTopology.LAT_LABEL].to_numpy()
+        self._y_geo = self.db_dataframe[GenTopology.LON_LABEL].to_numpy()
+        self._z_geo = self.db_dataframe[GenTopology.HEIGTH_LABEL].to_numpy()
+        self.azimuth = self.db_dataframe[GenTopology.AZ_LABEL].to_numpy()
         
         return
 
@@ -192,6 +155,7 @@ class GenTopology(Topology):
         """
 
         if not self.static_base_stations:
+
             self._load_data()
             self.static_base_stations = True
 
@@ -269,12 +233,20 @@ class GenTopology(Topology):
 
 if __name__ == '__main__':
 
-    topology = GenTopology( 'campaigns/radalt_study_database/qgis/filtered_db.csv', 
+    from sharc.parameters.database.parameters_database import Database
+
+    # Create a database instance
+    database = Database(
+        database_file_name='sharc/campaigns/09_Guarulhos_dB/filtered_db.csv',
+        delimiter='\t'
+    )
+    database.load_parameters_from_database()
+
+    topology = GenTopology( database.database_df,
                             cell_radius=300,
                             ref_lon=-46.5919,
                             ref_lat=-23.6041,
-                            ref_dist=30000,
-                            delimiter='\t' )
+                            ref_dist=30000 )
     topology.calculate_coordinates()
 
     fig = plt.figure(

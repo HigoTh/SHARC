@@ -96,9 +96,9 @@ class StationFactory(object):
             IMT base stations manager object.
         """
 
+        
+        from_database = param.database.database_loaded
         param_ant = param_ant_bs.get_antenna_parameters()
-        # TODO: Verificar uma forma mais otimizada de executar a leitura
-        param_ant.get_antenna_parameters_from_db()
         num_bs = topology.num_base_stations
         imt_base_stations = StationManager(num_bs)
         imt_base_stations.station_type = StationType.IMT_BS
@@ -131,9 +131,10 @@ class StationFactory(object):
             imt_base_stations.height = topology.z
             # Loads elevation values ​​from table if True, otherwise processes 
             # normally
-            if param_ant.from_database:
+            if from_database:
+                db_imt_antenna_params = param.database.db_imt_antenna_params
                 imt_base_stations.elevation = \
-                    -np.array([param_ant_i.downtilt for param_ant_i in param_ant.from_db_antennas])
+                    -np.array([param_ant_i.downtilt for param_ant_i in db_imt_antenna_params])
             else:
                 imt_base_stations.elevation = -param_ant.downtilt * np.ones(num_bs)
         else:
@@ -150,10 +151,11 @@ class StationFactory(object):
             num_bs,
         ) < param.bs.load_probability
 
-        if param_ant_bs.from_database == True:
+        if from_database == True:
+
+            db_imt_antenna_params = param.database.db_imt_antenna_params
             # Total power
-            total_power = \
-                np.array( [ param_ant_i.tx_power for param_ant_i in param_ant.from_db_antennas ] )
+            total_power = np.array( [ param_ant_i.tx_power for param_ant_i in db_imt_antenna_params ] )
             # Power per user
             imt_base_stations.tx_power = total_power - 10 * math.log10(param.ue.k)
         else:
@@ -197,9 +199,11 @@ class StationFactory(object):
 
         # Loads antenna parameters ​​from table if True, otherwise processes 
         # normally
-        if param_ant_bs.from_database == True:
+        if from_database == True:
+            db_imt_antenna_params = param.database.db_imt_antenna_params
             imt_base_stations.antenna = AntennaFactory.create_n_antennas_from_db(
-                param_ant.from_db_antennas,
+                param.bs.antenna,
+                db_imt_antenna_params,
                 imt_base_stations.azimuth,
                 imt_base_stations.elevation,
                 num_bs
