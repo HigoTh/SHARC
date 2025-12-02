@@ -9,11 +9,6 @@ from numpy import load
 import typing
 from dataclasses import dataclass, field
 from sharc.parameters.parameters_base import ParametersBase
-import numpy as np
-from sharc.parameters.imt.load_antenna_params_imt import load_antenna_params_from_file
-from sharc.parameters.imt.load_antenna_params_imt import AntennaParGen
-from pathlib import Path
-import copy
 
 @dataclass
 class ParametersAntennaSubarrayImt(ParametersBase):

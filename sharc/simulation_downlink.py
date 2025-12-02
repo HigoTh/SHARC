@@ -143,6 +143,7 @@ class SimulationDownlink(Simulation):
         # {bs_1: [pwr_1, pwr_2,...], ...}, where bs_1 is the base station id,
         # pwr_1 is the transmit power from bs_1 to ue_1, pwr_2 is the transmit
         # power from bs_1 to ue_2, etc
+        self.parameters.imt.bs.conducted_power
         bs_active = np.where(self.bs.active)[0]
         self.bs.tx_power = dict(
             [(bs, tx_power[bs] * np.ones(self.parameters.imt.ue.k))

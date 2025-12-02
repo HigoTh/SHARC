@@ -63,7 +63,7 @@ from sharc.support.sharc_geom import CoordinateSystem
 from sharc.mask.spectral_mask_imt2030 import SpectralMaskImt2030
 from sharc.support.sharc_utils import wrap2_180
 from sharc.topology.topology_UE_countries import ParametersUECountries, TopologyUECountries
-from sharc.parameters.imt.load_antenna_params_imt import load_antenna_params_from_file
+
 
 class StationFactory(object):
     """

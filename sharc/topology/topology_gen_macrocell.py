@@ -3,7 +3,7 @@
 from sharc.topology.topology import Topology
 import matplotlib.pyplot as plt
 import matplotlib.axes
-from matplotlib.patches import Circle, Wedge
+from matplotlib.patches import Circle, Wedge, Arc
 
 from pyproj import CRS, Transformer 
 import numpy as np
@@ -62,42 +62,9 @@ class GenTopology(Topology):
         self.ref_lat = ref_lat
         self.ref_lon = ref_lon
         self.ref_dist = ref_dist
-
         self.static_base_stations = False
-        # Load data
-        self._x_geo = np.empty(0)
-        self._y_geo = np.empty(0)
-        self._z_geo = np.empty(0)
 
-    def _load_data( self ) -> None:
-        """ 
-        Loads geographic data from the input table.
-        """
-
-        # Check latitude coordinates
-        if (self.db_dataframe[GenTopology.LAT_LABEL] > 90.0).any() or \
-           (self.db_dataframe[GenTopology.LAT_LABEL] < -90.0).any():
-            raise ValueError(f"Latitudes must be between -90° and 90°")
-        
-        if (self.db_dataframe[GenTopology.LON_LABEL] > 180.0).any() or \
-           (self.db_dataframe[GenTopology.LON_LABEL] < -180.0).any():
-            raise ValueError(f"Longitudes must be between -180° and 180°")
-
-        if (self.db_dataframe[GenTopology.HEIGTH_LABEL] < 0.0).any():
-            raise ValueError(f"BSs heights must a value greater than zero.")
-
-        if (self.db_dataframe[GenTopology.AZ_LABEL] > 360.0).any() or \
-           (self.db_dataframe[GenTopology.AZ_LABEL] < 0.0).any():
-            raise ValueError(f"Azimuth must be between 0° and 360°")
-
-        self._x_geo = self.db_dataframe[GenTopology.LAT_LABEL].to_numpy()
-        self._y_geo = self.db_dataframe[GenTopology.LON_LABEL].to_numpy()
-        self._z_geo = self.db_dataframe[GenTopology.HEIGTH_LABEL].to_numpy()
-        self.azimuth = self.db_dataframe[GenTopology.AZ_LABEL].to_numpy()
-        
-        return
-
-    def _compute_centroid( self ) -> None:
+    def _compute_centroid(self,x_geo: np.ndarray,y_geo: np.ndarray) -> None:
         """
         Calculates the centroid of input coordinates projected onto the 
         ground plane.
@@ -106,7 +73,7 @@ class GenTopology(Topology):
         # Convert coords to ecef
         coords_ecef_on_ground = np.array([ 
             GenTopology.geo2ecef.transform( lat, lon, 0.0 ) 
-            for (lat,lon) in zip(self._x_geo, self._y_geo) ] )
+            for (lat,lon) in zip(x_geo, y_geo) ] )
         
         # Compute centroid (centroid with zero heigth)
         centroid_ecef = np.mean( coords_ecef_on_ground, axis=0 )
@@ -156,9 +123,29 @@ class GenTopology(Topology):
 
         if not self.static_base_stations:
 
-            self._load_data()
             self.static_base_stations = True
 
+            # Check latitude coordinates
+            if (self.db_dataframe[GenTopology.LAT_LABEL] > 90.0).any() or \
+            (self.db_dataframe[GenTopology.LAT_LABEL] < -90.0).any():
+                raise ValueError(f"Latitudes must be between -90° and 90°")
+            
+            if (self.db_dataframe[GenTopology.LON_LABEL] > 180.0).any() or \
+            (self.db_dataframe[GenTopology.LON_LABEL] < -180.0).any():
+                raise ValueError(f"Longitudes must be between -180° and 180°")
+
+            if (self.db_dataframe[GenTopology.HEIGTH_LABEL] < 0.0).any():
+                raise ValueError(f"BSs heights must a value greater than zero.")
+
+            if (self.db_dataframe[GenTopology.AZ_LABEL] > 360.0).any() or \
+            (self.db_dataframe[GenTopology.AZ_LABEL] < 0.0).any():
+                raise ValueError(f"Azimuth must be between 0° and 360°")
+
+            x_geo = self.db_dataframe[GenTopology.LAT_LABEL].to_numpy()
+            y_geo = self.db_dataframe[GenTopology.LON_LABEL].to_numpy()
+            z_geo = self.db_dataframe[GenTopology.HEIGTH_LABEL].to_numpy()
+            self.azimuth = self.db_dataframe[GenTopology.AZ_LABEL].to_numpy()
+            
             # Calculate the centroid of station positions
             centroid_ecef, centroid_geo = self._compute_center( )
             # Compute ECEF to ENU rotation matrix
@@ -171,7 +158,7 @@ class GenTopology(Topology):
 
             x, y, z = [], [], []
             # Convert coordinates
-            for i, (lat,lon,alt) in enumerate( zip(self._x_geo, self._y_geo, self._z_geo) ):
+            for i, (lat,lon,alt) in enumerate( zip(x_geo, y_geo, z_geo) ):
 
                 # Geo to ECEF conversion
                 coords_ecef = GenTopology.geo2ecef.transform( lat, lon, alt )
@@ -181,8 +168,11 @@ class GenTopology(Topology):
 
                 # Convert to local ENU
                 enu_v = np.matmul( rot_matrix, ecef_v )
-                
-                # Distance between coordinate and reference coordinate
+
+                x.append( enu_v[0] )
+                y.append( enu_v[1] )
+                z.append( enu_v[2] )                
+                # # Distance between coordinate and reference coordinate
                 # dist = np.sqrt((enu_v[0] - ref_enu_v[0])**2 + (enu_v[1] - ref_enu_v[1])**2)
 
                 # if dist <= self.ref_dist:
@@ -190,14 +180,13 @@ class GenTopology(Topology):
                 #     x.append( enu_v[0] )
                 #     y.append( enu_v[1] )
                 #     z.append( enu_v[2] )
-                x.append( enu_v[0] )
-                y.append( enu_v[1] )
-                z.append( enu_v[2] )
+                    # self.filter_mask[i] = True
+
+
 
             self.x = np.array( x )
             self.y = np.array( y )
             self.z = np.array( z )
-
             # Number of base stations
             self.num_base_stations = len( self.x )
 
@@ -223,6 +212,15 @@ class GenTopology(Topology):
                             alpha=0.4,
                             edgecolor='black')
             ax.add_patch(circle)
+            arc = Wedge((x, y), 
+                      r=self.cell_radius*1.2,
+                      theta1=az-15,
+                      theta2=az+15,
+                      alpha=0.4,
+                      facecolor='green',
+                      edgecolor='grey')
+            ax.add_patch(arc)
+
             ex = x + self.cell_radius * np.cos(np.deg2rad(az))
             ey = y + self.cell_radius * np.sin(np.deg2rad(az))
             ax.plot([x, ex], [y, ey], linewidth=2, linestyle='--',color='black')
