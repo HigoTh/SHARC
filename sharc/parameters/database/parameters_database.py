@@ -31,7 +31,7 @@ class Database:
 
         self.database_df = None
 
-    def load_parameters_from_database(self):
+    def load_parameters_from_database(self, num_rows: int):
         """
         Load parameters from database file.
         """
@@ -49,12 +49,12 @@ class Database:
         if self.database_file_name.endswith('.csv'):
 
             self.database_df = pd.read_csv(self.database_file_name,delimiter=self.delimiter, 
-                                           nrows=None if self.n_rows < 1 else self.n_rows )
+                                           nrows=None if num_rows < 1 else num_rows )
             
         elif self.database_file_name.endswith('.xlsx'):
 
             self.database_df = pd.read_excel(self.database_file_name, 
-                                             nrows=None if self.n_rows < 1 else self.n_rows )
+                                             nrows=None if num_rows < 1 else num_rows )
         else:
             raise ValueError( 'File format must be .csv or .xlsx' )
 
@@ -132,7 +132,7 @@ class ParametersDatabase(ParametersBase):
                 raise ValueError(f"ParametersGeneral: Invalid database delimiter")
             
             # Load database
-            self.database = Database(self.database_file_name, self.delimiter).load_parameters_from_database()
+            self.database = Database(self.database_file_name, self.delimiter).load_parameters_from_database(self.max_rows)
             self.database_loaded = True
             # Get IMT antenna parameters
             self.get_imt_antenna_parameters()

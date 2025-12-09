@@ -1,7 +1,7 @@
 
 """Antenna factory module for creating antenna instances based on parameters."""
 from dataclasses import replace
-
+from typing import List
 from sharc.parameters.parameters_antenna import ParametersAntenna
 from sharc.antenna.antenna import Antenna
 
@@ -19,6 +19,7 @@ from sharc.antenna.antenna_f1245_fs import Atenna_f1245_fs
 from sharc.antenna.antenna_s1528 import AntennaS1528, AntennaS1528Leo, AntennaS1528Taylor
 from sharc.antenna.antenna_beamforming_imt import AntennaBeamformingImt
 from sharc.antenna.antenna_ra_m2319 import AntennaRA_M2319
+from sharc.parameters.database.parameters_database_imt_antenna import AntennaParamsFromFile
 
 import numpy as np
 
@@ -111,7 +112,7 @@ class AntennaFactory():
     @staticmethod
     def create_n_antennas_from_db(
         ref_antenna_params: ParametersAntenna,
-        db_antenna_params: list,
+        db_antenna_params: List[AntennaParamsFromFile],
         azimuth: np.ndarray | float,
         elevation: np.ndarray | float,
         n_stations: int,
@@ -127,7 +128,7 @@ class AntennaFactory():
         for i in range(n_stations):
 
             ant_params_io = ref_antenna_params.array.get_antenna_parameters()
-            ant_params_in_subarray = replace(ant_params_io.subarray, n_rows=db_antenna_params[i].element_max_g )
+            ant_params_in_subarray = replace(ant_params_io.subarray, n_rows=db_antenna_params[i].sub_num_rows )
             ant_params_in = replace(ant_params_io,
                                     element_max_g=db_antenna_params[i].element_max_g,
                                     n_rows=db_antenna_params[i].n_rows,
