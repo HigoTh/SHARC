@@ -93,15 +93,6 @@ class ParametersAntennaImt(ParametersBase):
     subarray: ParametersAntennaSubarrayImt = field(
         default_factory=ParametersAntennaSubarrayImt)
 
-    # Flag for reading parameters from file
-    from_database: bool = False
-    # Path to database file
-    database_file: str = "antenna/database.csv"
-    # Database delimiter
-    database_delimiter: str = '\t'
-    # TX power [dBm] (Database only)
-    tx_power: float = 10.0
-
     def __post_init__(self):
         self.normalization_data = None
         self.from_db_antennas = None

@@ -100,9 +100,6 @@ class ParametersTest(unittest.TestCase):
             self.parameters.imt.adjacent_antenna_model,
             "BEAMFORMING",
         )
-        self.assertEqual(self.parameters.imt.bs.antenna.array.from_database, False)
-        self.assertEqual(self.parameters.imt.bs.antenna.array.database_file, "database.csv")
-        self.assertEqual(self.parameters.imt.bs.antenna.array.database_delimiter, ",")
         self.assertEqual(
             self.parameters.imt.bs.antenna.array.normalization, False)
         self.assertEqual(

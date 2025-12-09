@@ -358,14 +358,6 @@ imt:
             # pattern: ITU-R-S.1528-Taylor
             array:
                 ###########################################################################
-                # If database should be used to specify the antenna
-                from_database  : FALSE
-                ###########################################################################
-                # Database file path used to specify the BSs antennas
-                database_file  : database.csv
-                ###########################################################################
-                database_delimiter : ','
-                ###########################################################################
                 # If normalization of M2101 should be applied for BS
                 normalization  : FALSE
                 ###########################################################################

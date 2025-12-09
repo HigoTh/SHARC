@@ -166,7 +166,7 @@ class StationFactory(object):
             imt_base_stations.tx_power = \
                 param.bs.conducted_power * np.ones(num_bs) + \
                 bs_power_gain - 10 * math.log10(param.ue.k)
-
+            
         imt_base_stations.rx_power = dict(
             [(bs, -500 * np.ones(param.ue.k)) for bs in range(num_bs)],
         )
