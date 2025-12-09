@@ -103,3 +103,6 @@ SYS_*.txt
 sharc/campaigns/mss_d2d_to_imt/output/*.yaml
 /sharc/campaigns/imt_hibs_ras_2600_MHz_GenM/*
 /sharc/campaigns/radalt_study_database/*
+/sharc/campaigns/09_Guarulhos_dB/*
+/sharc/campaigns/09_Guarulhos/*
+/logs/*

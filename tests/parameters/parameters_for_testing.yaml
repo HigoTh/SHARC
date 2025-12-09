@@ -26,6 +26,8 @@ database:
     ###########################################################################
     # Database delimiter (for .csv files)
     delimiter : '\t'
+    # Maximum rows to read. If -1, will load all rows
+    max_rows: 1000
 imt:
     ###########################################################################
     # Minimum 2D separation distance from BS to UE [m]

@@ -1,10 +1,10 @@
 general:
-  num_snapshots: 500
+  num_snapshots: 100
   imt_link: DOWNLINK
   system: SINGLE_SPACE_STATION
   enable_cochannel: true
   enable_adjacent_channel: false
-  seed: 199
+  seed: 791
   overwrite_output: false
   output_dir: campaigns/Guarulhos_database/output_dl/
   output_dir_prefix: database_sim_approach_10000m
@@ -15,6 +15,8 @@ database:
     ###########################################################################
     # Database delimiter (for .csv files)
   delimiter: '\t'
+    # Maximum rows to read. If -1, will load all rows
+  max_rows: 1000
 imt:
   minimum_separation_distance_bs_ue: 35
   interfered_with: false

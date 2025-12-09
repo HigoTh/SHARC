@@ -1,5 +1,5 @@
 general:
-  num_snapshots: 500
+  num_snapshots: 100
   imt_link: DOWNLINK
   system: SINGLE_SPACE_STATION
   enable_cochannel: true
@@ -15,6 +15,8 @@ database:
     ###########################################################################
     # Database delimiter (for .csv files)
     delimiter : '\t'
+    # Maximum rows to read. If -1, will load all rows
+    max_rows: 1000
 imt:
   minimum_separation_distance_bs_ue: 35
   interfered_with: false

@@ -284,6 +284,7 @@ class ParametersTest(unittest.TestCase):
         """
         self.assertEqual(self.parameters.database.database_file_name, './database.csv')
         self.assertEqual(self.parameters.database.delimiter, '\t')
+        self.assertEqual(self.parameters.database.max_rows, 1000)
 
         """
         Test parameters mss dc

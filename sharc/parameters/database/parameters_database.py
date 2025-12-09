@@ -47,21 +47,18 @@ class Database:
         # Read file
         self.database_df = None
         if self.database_file_name.endswith('.csv'):
-                    
-            self.database_df = pd.read_csv( self.database_file_name,
-                                        delimiter=self.delimiter,
-                                        usecols=col_labels_types.keys(),
-                                        dtype=col_labels_types )
 
+            self.database_df = pd.read_csv(self.database_file_name,delimiter=self.delimiter, 
+                                           nrows=None if self.n_rows < 1 else self.n_rows )
+            
         elif self.database_file_name.endswith('.xlsx'):
-                    
-            self.database_df = pd.read_excel( self.database_file_name,
-                                        usecols=col_labels_types.keys(),
-                                        dtype=col_labels_types )
+
+            self.database_df = pd.read_excel(self.database_file_name, 
+                                             nrows=None if self.n_rows < 1 else self.n_rows )
         else:
             raise ValueError( 'File format must be .csv or .xlsx' )
 
-        
+        self.database_df.columns = self.database_df.columns.str.lower()
         # Check if all required columns exist in the DataFrame
         missing_columns = [ f for f in col_labels_types.keys()
                         if f not in self.database_df ]
@@ -93,6 +90,9 @@ class ParametersDatabase(ParametersBase):
 
     # Database delimiter
     delimiter: str = ","
+
+    # Maximum rows to load
+    max_rows: int = 1000
 
     # Database dataframe
     database_df: pd.DataFrame = field(default_factory=pd.DataFrame, init=False)

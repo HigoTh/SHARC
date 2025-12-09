@@ -3,7 +3,7 @@ from sharc.run_multiple_campaigns import run_campaign
 # Set the campaign name
 # The name of the campaign to run. This should match the name of the
 # campaign directory.
-name_campaign = "09_Guarulhos_dB"
+name_campaign = "Guarulhos_database"
 
 # Run the campaign in single-thread mode
 # This function will execute the campaign with the given name in a single-threaded manner.
