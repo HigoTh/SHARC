@@ -21,10 +21,12 @@ db_df["NomeEntidade_norm"] = db_df["NomeEntidade"].str.strip().str.lower()
 
 # Adicionar coluna de potência (se não houver)
 if "tx_power" not in db_df.columns:
-    db_df["tx_power"] = 10.0 * np.log10( db_df["PotenciaTransmissorWatts"] ) + 30.0  # ou qualquer valor padrão
+    db_df["tx_power"] = 10.0 * np.log10( db_df["PotenciaTransmissorWatts"] ) + 30.0 - 3.0 # ou qualquer valor padrão
 # Adicionar coluna de downtilt (se não houver)
 if "downtilt" not in db_df.columns:
     db_df["downtilt"] = 6.0
+
+# db_df["beamforming_gain"] = 15.0
 
 db_df["Latitude"] = db_df["Latitude"].apply(round_dec_places)
 db_df["Longitude"] = db_df["Longitude"].apply(round_dec_places)
@@ -43,3 +45,4 @@ group = {k: v.copy() for k, v in db_df.groupby("NomeEntidade_norm")}
 
 for nome, grupo in db_df.groupby("NomeEntidade_norm"):
     grupo.to_csv(f"./sharc/campaigns/Guarulhos_database/Database_Anatel_{nome}.csv", sep="\t", index=False)
+    print((grupo["beamforming_gain"] < 1).sum()/len(grupo), (grupo["beamforming_gain"] > 1).sum(), (grupo["beamforming_gain"] < 1).sum(), nome)

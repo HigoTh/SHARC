@@ -4,7 +4,7 @@ general:
   system: SINGLE_SPACE_STATION
   enable_cochannel: true
   enable_adjacent_channel: false
-  seed: 362
+  seed: 782
   overwrite_output: false
   output_dir: campaigns/Guarulhos_database/output_dl/
   output_dir_prefix: database_sim_approach_1000m
