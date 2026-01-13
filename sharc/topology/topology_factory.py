@@ -60,7 +60,7 @@ class TopologyFactory(object):
             if not parameters.database.database_loaded:
                 raise ValueError(f"TopologyFactory: \
                                    Macrocell topology should be used with an database")
-            return GenTopology( parameters.database.database.database_df,
+            return GenTopology( parameters.database.database.database_df_full,
                         parameters.imt.topology.gen_macrocell.cell_radius,
                         parameters.imt.topology.gen_macrocell.ref_lat,
                         parameters.imt.topology.gen_macrocell.ref_lon,

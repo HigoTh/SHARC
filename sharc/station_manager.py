@@ -293,6 +293,8 @@ class StationManager(object):
             phi, theta (phi is calculated with respect to x counter-clockwise and
             theta is calculated with respect to z counter-clockwise).
         """
+        if len(self.latitude) == 0:
+            print('a')
         if (self.latitude[0] != 0):
             # 3) LOS in ECEF, broadcast to (N,M,3)
             dx = -(self.x[None, :] - station.x[:, None])

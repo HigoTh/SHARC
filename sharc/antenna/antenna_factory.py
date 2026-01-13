@@ -120,11 +120,12 @@ class AntennaFactory():
         """
         Creates many antennas based on based on the parameters read from the table.
         """
+        
         antennas = np.empty((n_stations,), dtype=Antenna)
         assert n_stations == len(azimuth)
         assert n_stations == len(elevation)
         assert n_stations == len(db_antenna_params)
-
+        
         for i in range(n_stations):
 
             ant_params_io = ref_antenna_params.array.get_antenna_parameters()

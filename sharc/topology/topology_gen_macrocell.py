@@ -144,7 +144,7 @@ class GenTopology(Topology):
             x_geo = self.db_dataframe[GenTopology.LAT_LABEL].to_numpy()
             y_geo = self.db_dataframe[GenTopology.LON_LABEL].to_numpy()
             z_geo = self.db_dataframe[GenTopology.HEIGTH_LABEL].to_numpy()
-            self.azimuth = self.db_dataframe[GenTopology.AZ_LABEL].to_numpy()
+            self.azimuthf = self.db_dataframe[GenTopology.AZ_LABEL].to_numpy()
             
             # Calculate the centroid of station positions
             centroid_ecef, centroid_geo = self._compute_center( )
@@ -184,17 +184,31 @@ class GenTopology(Topology):
 
 
 
-            self.x = np.array( x )
-            self.y = np.array( y )
-            self.z = np.array( z )
+            self.xf = np.array( x )
+            self.yf = np.array( y )
+            self.zf = np.array( z )
+            self.x = np.copy( self.xf )
+            self.y = np.copy( self.yf )
+            self.z = np.copy( self.zf )
+            self.azimuth = np.copy( self.azimuthf )
             # Number of base stations
-            self.num_base_stations = len( self.x )
+            self.num_base_stations = len( self.xf )
 
             if self.num_base_stations <= 0:
                 raise ValueError(f"No coordinates are in the region centered on ({self.ref_lat, self.ref_lonef})")
 
         return
     
+    def point_to_ith_chunk(self, blk_i: int, chunk_size: int):
+        
+        self.x = self.xf[blk_i*chunk_size:(blk_i+1)*chunk_size - 1]
+        self.y = self.yf[blk_i*chunk_size:(blk_i+1)*chunk_size - 1]
+        self.z = self.zf[blk_i*chunk_size:(blk_i+1)*chunk_size - 1]
+        self.azimuth = self.azimuthf[blk_i*chunk_size:(blk_i+1)*chunk_size - 1]
+        self.num_base_stations = len(self.x)
+
+        return
+
     def plot(self, ax: matplotlib.axes.Axes):
 
         # macro cell base stations

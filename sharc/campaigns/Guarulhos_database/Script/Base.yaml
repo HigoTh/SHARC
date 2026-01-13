@@ -1,5 +1,5 @@
 general:
-  num_snapshots: 100
+  num_snapshots: 10
   imt_link: DOWNLINK
   system: SINGLE_SPACE_STATION
   enable_cochannel: true
@@ -11,12 +11,12 @@ general:
 database:
     ###########################################################################
     # Path to the database file
-    database_file_name  : 'sharc/campaigns/Guarulhos_database/Database_Anatel_claro s.a..csv'
+    database_file_name  : 'sharc/campaigns/Guarulhos_database/Database_Anatel_claro_sa_elg5.2dbi_h18.csv'
     ###########################################################################
     # Database delimiter (for .csv files)
     delimiter : '\t'
-    # Maximum rows to read. If -1, will load all rows
-    max_rows: 1000
+    # Number of database subsets
+    num_subsets: 30
 imt:
   minimum_separation_distance_bs_ue: 35
   interfered_with: false
@@ -75,7 +75,7 @@ imt:
           element_vert_spacing: 0.7
           eletrical_downtilt: 3.0
   ue:
-    k: 3
+    k: 4
     k_m: 1
     indoor_percent: 70
     distribution_type: ANGLE_AND_DISTANCE

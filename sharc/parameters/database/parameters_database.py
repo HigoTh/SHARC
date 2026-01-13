@@ -7,6 +7,7 @@ from dataclasses import fields, field
 import pandas as pd
 from typing import List
 import numpy as np
+import math
 
 from sharc.parameters.parameters_base import ParametersBase
 from sharc.parameters.database.parameters_database_imt_antenna import AntennaParamsFromFile
@@ -22,6 +23,9 @@ class Database:
     database_file_name: str = "./database.csv"
 
     # Database dataframe
+    database_df_full: float = field(default_factory=pd.DataFrame, init=False)
+
+    # Database chunk dataframe
     database_df: float = field(default_factory=pd.DataFrame, init=False)
 
     # Database delimiter
@@ -29,9 +33,9 @@ class Database:
 
     def __post_init__(self):
 
-        self.database_df = None
+        self.database_df_full = None
 
-    def load_parameters_from_database(self, num_rows: int):
+    def load_parameters_from_database(self):
         """
         Load parameters from database file.
         """
@@ -45,23 +49,21 @@ class Database:
         col_labels_types = {**col_labels_types_imt_ant, **col_labels_types_gen_topology}
 
         # Read file
-        self.database_df = None
+        self.database_df_full = None
         if self.database_file_name.endswith('.csv'):
 
-            self.database_df = pd.read_csv(self.database_file_name,delimiter=self.delimiter, 
-                                           nrows=None if num_rows < 1 else num_rows )
+            self.database_df_full = pd.read_csv(self.database_file_name,delimiter=self.delimiter)
             
         elif self.database_file_name.endswith('.xlsx'):
 
-            self.database_df = pd.read_excel(self.database_file_name, 
-                                             nrows=None if num_rows < 1 else num_rows )
+            self.database_df_full = pd.read_excel(self.database_file_name)
         else:
             raise ValueError( 'File format must be .csv or .xlsx' )
 
-        self.database_df.columns = self.database_df.columns.str.lower()
+        self.database_df_full.columns = self.database_df_full.columns.str.lower()
         # Check if all required columns exist in the DataFrame
         missing_columns = [ f for f in col_labels_types.keys()
-                        if f not in self.database_df ]
+                        if f not in self.database_df_full ]
         if missing_columns:
             raise ValueError(
                 f"Missing columns in the file: {missing_columns}. "
@@ -69,7 +71,7 @@ class Database:
             )
         
         # Filter only columns that exist in the class
-        self.database_df = self.database_df[col_labels_types.keys()]
+        self.database_df_full = self.database_df_full[col_labels_types.keys()]
 
         return self
 
@@ -91,11 +93,14 @@ class ParametersDatabase(ParametersBase):
     # Database delimiter
     delimiter: str = ","
 
-    # Maximum rows to load
-    max_rows: int = 1000
+    # Number of parts into which the base is divided.
+    num_subsets: int = 1
 
-    # Database dataframe
-    database_df: pd.DataFrame = field(default_factory=pd.DataFrame, init=False)
+    # Chunks size
+    chunks_size: int = 100
+
+    # IMT antenna parameters
+    db_imt_antenna_params_full: List[AntennaParamsFromFile] = field(init=False)
 
     # IMT antenna parameters
     db_imt_antenna_params: List[AntennaParamsFromFile] = field(init=False)
@@ -132,10 +137,16 @@ class ParametersDatabase(ParametersBase):
                 raise ValueError(f"ParametersGeneral: Invalid database delimiter")
             
             # Load database
-            self.database = Database(self.database_file_name, self.delimiter).load_parameters_from_database(self.max_rows)
+            self.database = Database(self.database_file_name, self.delimiter).load_parameters_from_database()
             self.database_loaded = True
             # Get IMT antenna parameters
             self.get_imt_antenna_parameters()
+
+            # Chunk size
+            self.chunks_size = math.ceil(len(self.database.database_df_full) / self.num_subsets)
+
+            # Point to the first subset
+            self.point_to_ith_subset(0)
 
         return
 
@@ -144,8 +155,15 @@ class ParametersDatabase(ParametersBase):
         # Load antenna parameters
         col_labels_types_imt_ant = {f.name.lower(): f.type for f in fields(AntennaParamsFromFile)}
         # Filter only columns that exist in the class
-        ant_params_df = self.database.database_df[col_labels_types_imt_ant.keys()]
+        ant_params_df = self.database.database_df_full[col_labels_types_imt_ant.keys()]
         # Convert each line to a AntennaParamsFromFile object
-        self.db_imt_antenna_params = [AntennaParamsFromFile(**row) for row in ant_params_df.to_dict('records')]
+        self.db_imt_antenna_params_full = [AntennaParamsFromFile(**row) for row in ant_params_df.to_dict('records')]
+
+        return
+    
+    def point_to_ith_subset(self, blk_i: int):
+
+        self.database.database_df = self.database.database_df_full.iloc[blk_i*self.chunks_size:(blk_i+1)*self.chunks_size - 1]
+        self.db_imt_antenna_params = self.db_imt_antenna_params_full[blk_i*self.chunks_size:(blk_i+1)*self.chunks_size - 1]
 
         return

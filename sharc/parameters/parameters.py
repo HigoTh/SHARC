@@ -128,6 +128,7 @@ class Parameters(object):
         self.database.load_parameters_from_file(self.file_name)
         # Connect imt parameters to the database
         self.imt.database = self.database
+        self.general.num_snapshots = self.general.num_snapshots * self.database.num_subsets
 
 
         #######################################################################

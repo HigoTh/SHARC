@@ -123,10 +123,10 @@ for s_m in DISTANCES_M:
 
     # muda também o prefixo
     if "general" in doc and isinstance(doc["general"], dict):
-        doc["general"]["output_dir_prefix"] = f"database_sim_approach_{int(s_m)}m"
+        doc["general"]["output_dir_prefix"] = f"database_sim_approach_fixed_gain_{int(s_m)}m_fixed_h"
 
     # salva com nome pela distância
-    out = OUT_DIR / f"input_air_approach_database_{int(s_m)}m.yaml"
+    out = OUT_DIR / f"database_sim_approach_fixed_gain_{int(s_m)}m_fixed_h.yaml"
     with out.open("w", encoding="utf-8") as f:
         yaml.dump(doc, f)
 

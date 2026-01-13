@@ -50,6 +50,12 @@ class SimulationDownlink(Simulation):
 
         random_number_gen = np.random.RandomState(seed)
 
+        if self.parameters.database.database_loaded and self.parameters.imt.topology.type == "GEN_MACROCELL":
+
+            chunk_i = int(snapshot_number) // self.parameters.database.chunks_size
+            self.topology.point_to_ith_chunk( chunk_i, self.parameters.database.chunks_size )
+            self.parameters.database.point_to_ith_subset( chunk_i )
+
         # In case of hotspots, base stations coordinates have to be calculated
         # on every snapshot. Anyway, let topology decide whether to calculate
         # or not
