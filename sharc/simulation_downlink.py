@@ -454,6 +454,11 @@ class SimulationDownlink(Simulation):
                     0.1 * interference,
                 ),
             )
+            print(np.min(pow_coch) + np.min(self.system_imt_antenna_gain), np.max(pow_coch) + np.max(self.system_imt_antenna_gain))
+            # eirp = pow_coch + self.system_imt_antenna_gain
+            
+            # with open(f"eirp{self.seed}.txt", "ab") as f:
+            #     np.savetxt(f, eirp)
 
         if self.adjacent_channel:
             # Calculate how much power is emitted in the adjacent channel:

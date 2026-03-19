@@ -171,7 +171,8 @@ class GenTopology(Topology):
 
                 x.append( enu_v[0] )
                 y.append( enu_v[1] )
-                z.append( enu_v[2] )                
+                z.append( alt )
+
                 # # Distance between coordinate and reference coordinate
                 # dist = np.sqrt((enu_v[0] - ref_enu_v[0])**2 + (enu_v[1] - ref_enu_v[1])**2)
 
@@ -249,12 +250,12 @@ if __name__ == '__main__':
 
     # Create a database instance
     database = Database(
-        database_file_name='sharc/campaigns/09_Guarulhos_dB/filtered_db.csv',
+        database_file_name='sharc/campaigns/Guarulhos_database/Database_Anatel_tim_s_a.csv',
         delimiter='\t'
     )
     database.load_parameters_from_database()
 
-    topology = GenTopology( database.database_df,
+    topology = GenTopology( database.database_df_full,
                             cell_radius=300,
                             ref_lon=-46.5919,
                             ref_lat=-23.6041,

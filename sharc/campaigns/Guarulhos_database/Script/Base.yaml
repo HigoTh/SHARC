@@ -11,7 +11,7 @@ general:
 database:
     ###########################################################################
     # Path to the database file
-    database_file_name  : 'sharc/campaigns/Guarulhos_database/Database_Anatel_claro_sa_elg5.2dbi_h18.csv'
+    database_file_name  : 'sharc/campaigns/Guarulhos_database/Database_Anatel_FULL_fixed_h.csv'
     ###########################################################################
     # Database delimiter (for .csv files)
     delimiter : '\t'

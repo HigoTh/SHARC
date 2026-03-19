@@ -83,7 +83,7 @@ class PropagationP528(Propagation):
 
         # Alturas geométricas [km]
         hA_km = (np.asarray(station_a.height, dtype=float) / 1e3) * np.ones_like(distance, dtype=float)
-        hB_km = (np.asarray(station_b.height, dtype=float) / 1e3) * np.ones_like(distance, dtype=float)
+        hB_km = np.asarray(station_b.height, dtype=float) / 1e3
 
         # Indoor (P.528 não cobre indoor/clutter — manter 0)
         indoor = np.zeros_like(distance, dtype=bool)
@@ -199,11 +199,16 @@ class PropagationP528(Propagation):
             # --- Step 3-12: Combine with absorption, FSPL and variability ----------------
             r_fsl = r1m + r2m + 2.0 * np.maximum(dk - (dr1m + dr2m), 0.0)
             Afs   = _fspl_dB(fm, np.maximum(r_fsl, dk))
-            Yp    = self._variability_long_term(p_time, dk, fm)
+            Yp    = self._variability_long_term(p_time[~los_mask], dk, fm)
             Lb[~los_mask] = Afs + Aa_m + AT + Yp
 
+        Lb[~los_mask] = 200.0
         # --- (Post) Finalization ---------------------------------------------------------
         Lb = np.where(np.isfinite(Lb), Lb, 0.0)
+
+        if np.any(Lb < 30):
+            print('a')
+
         return Lb
 
     # ------------------------------------------------------------------
@@ -627,9 +632,9 @@ class PropagationP528(Propagation):
 # --------------------------------------------------------------------------------------
 if __name__ == "__main__":
     f_MHz     = 3500.0
-    h1_km     = 0.050   # 50 m
-    h2_km     = 1.0    # 10 km aircraft
-    d_km      = np.linspace(1.0, 50.0, 800)
+    h1_km     = 52/1000   # 50 m
+    h2_km     = 3.5/1000    # 10 km aircraft
+    d_km      = np.linspace(10/1000, 50.0, 800)
     d_m       = np.sqrt(1**2 + d_km**2) * 1000.0
     f_vec     = np.full_like(d_m, f_MHz, dtype=float)
     h1_v      = np.full_like(d_km, h1_km, dtype=float)

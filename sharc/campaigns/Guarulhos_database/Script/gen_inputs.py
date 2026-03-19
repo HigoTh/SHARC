@@ -48,8 +48,8 @@ lat_c = -23.6041
 lon_c = -46.5919
 
 # Coordenada de inicio [°]
-lat_0 = -23.5685
-lon_0 = -46.8609
+lat_0 = -23.4304
+lon_0 = -46.7775
 # Coordenadas central [m]
 x_0, y_0 = latlon2xy(lat_0, lon_0, lat_c, lon_c)
 
@@ -68,13 +68,16 @@ GLIDESLOPE_DEG  = 3.0         # rampa (graus)
 # Distâncias no plano até pouso do avião
 DISTANCES_M = [
     1000,
+    1500,
     2000,
+    3000,
+    4000,
     6000,
-    10000,
-    15000,
-    20000,
-    25000,
-    30000,
+    8000,
+    12000,
+    16000,
+    24000,
+    32000
 ]
 
 # Leitura do Yaml --------------------------------------------------
@@ -97,6 +100,7 @@ geom['es_long_deg'] = lon_c
 
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
+filename_preffix = 'fixed_h_database_sim_approach_'
 # Loop nas distâncias ----------------------------------------------
 total_files = 0
 for s_m in DISTANCES_M:
@@ -123,10 +127,10 @@ for s_m in DISTANCES_M:
 
     # muda também o prefixo
     if "general" in doc and isinstance(doc["general"], dict):
-        doc["general"]["output_dir_prefix"] = f"database_sim_approach_fixed_gain_{int(s_m)}m_fixed_h"
+        doc["general"]["output_dir_prefix"] = f"{filename_preffix}{int(s_m)}m"
 
     # salva com nome pela distância
-    out = OUT_DIR / f"database_sim_approach_fixed_gain_{int(s_m)}m_fixed_h.yaml"
+    out = OUT_DIR / f"{filename_preffix}{int(s_m)}m.yaml"
     with out.open("w", encoding="utf-8") as f:
         yaml.dump(doc, f)
 
