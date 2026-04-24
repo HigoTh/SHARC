@@ -12,6 +12,7 @@ import math
 from sharc.parameters.parameters_base import ParametersBase
 from sharc.parameters.database.parameters_database_imt_antenna import AntennaParamsFromFile
 from sharc.parameters.database.parameters_database_gen_topology import GenTopologyParamsFromFile
+from sharc.parameters.database.parameters_database_topology_countries import TopologyCountriesParamsFromFile
 
 ALLOWED_FORMATS = ['.csv', '.xlsx']
 ALLOWED_DELIMITERS = ['\t',',','|']
@@ -44,9 +45,13 @@ class Database:
         col_labels_types_imt_ant = {f.name.lower(): f.type for f in fields(AntennaParamsFromFile)}
         # Get the field names of the GenTopologyParamsFromFile class
         col_labels_types_gen_topology = {f.name.lower(): f.type for f in fields(GenTopologyParamsFromFile)}
+        # Get the field name of the TopologyCountriesParamsFromFile class
+        col_labels_types_topology_countries = {f.name.lower(): f.type for f in fields(TopologyCountriesParamsFromFile)}
 
         # Columns names and types
-        col_labels_types = {**col_labels_types_imt_ant, **col_labels_types_gen_topology}
+        col_labels_types = {**col_labels_types_imt_ant, 
+                            **col_labels_types_gen_topology,
+                            **col_labels_types_topology_countries}
 
         # Read file
         self.database_df_full = None

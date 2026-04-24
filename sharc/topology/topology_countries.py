@@ -31,6 +31,7 @@ from sharc.topology.topology import Topology
 from sharc.satellite.ngso.constants import EARTH_DEFAULT_CRS
 from sharc.parameters.imt.parameters_Countries_imt import ParametersCountries
 from sharc.support.sharc_geom_countries import GeometryConverter
+from sharc.parameters.database.parameters_database import Database
 
 _WGS84_A  = 6378137.0                 # semi-major axis [m]
 _WGS84_F  = 1.0 / 298.257223563
@@ -69,161 +70,182 @@ class TopologyCountries(Topology):
         self.height = np.empty(0, dtype=float)
         self.azimuth = np.empty(0, dtype=float)
         self.num_base_stations: int = 0
-
+        self.database = params.database
+        self.from_db = params.from_db
         self.rng = random_number_gen if random_number_gen is not None \
             else np.random.RandomState(params.rng_seed)
 
     def calculate_coordinates(self,
                             random_number_gen: np.random.RandomState | None = None) -> "TopologyCountries":
-        # Load country polygons (WGS84)
-        params = self.params
-        self.cell_radius = params.cell_radius
-        self.height = params.height
-        ne = self._load_countries_gdf(params.countries_shapefile)
+        
+        if self.from_db:
+            
+            # Save geodetic positions (for plotting)
+            self.lons = database.database_df_full['longitude'].to_numpy()
+            self.lats = database.database_df_full['latitude'].to_numpy()
+            self.country_index = np.zeros_like(self.lons) # O QUE FAZER?
+            self.height = database.database_df_full['altura'].to_numpy()
 
-        if not params.country_names:
-            raise ValueError("TopologyCountries: 'country_names' cannot be empty.")
-
-        has_name = "name" in ne.columns
-        has_admin = "ADMIN" in ne.columns
-
-        polys_by_country: Dict[str, MultiPolygon | Polygon] = {}
-        areas: Dict[str, float] = {}
-
-        for name in params.country_names:
-            if has_name and has_admin:
-                row = ne[(ne["name"] == name) | (ne["ADMIN"] == name)]
-            elif has_name:
-                row = ne[ne["name"] == name]
-            elif has_admin:
-                row = ne[ne["ADMIN"] == name]
-            else:
-                raise RuntimeError("Countries GeoDataFrame missing 'name'/'ADMIN' columns.")
-
-            if row.empty:
-                raise ValueError(f"Country '{name}' not found in dataset.")
-
-            geom = unary_union(row.geometry.values)
-
-            # Subtract lakes (geometry-level mask) to avoid inland water
-            if self.params.mask_inland_water:
-                geom = self._subtract_lakes(geom)
-
-            polys_by_country[name] = geom
-            areas[name] = float(geom.area)
-
-        # Optional: extend index_nodata with "white-ish" bins from ACT
-        effective_index_nodata = self._extend_index_nodata_with_white(
-            self.params.index_nodata, self.params.act_colormap_path, tol=3
-        )
-
-        # NEW: resolve density band once
-        density_range = self._get_density_range()
-
-        # -------- Decide how many BS per country --------
-        if params.bs_per_country:
-            counts = dict(params.bs_per_country)
+            self.num_base_stations = len(self.lons)
+            if self.num_base_stations == 0:
+                raise RuntimeError("TopologyCountries created zero base stations. Check inputs.")
+            
+            # Convert to transformed Cartesian (simulation coordinates)
+            x, y, z = self._lla_to_ecef(self.lats, self.lons, self.height)
+            self.x = np.array(x)
+            self.y = np.array(y)
+            self.z = np.array(z)
 
         else:
-            if params.num_bs_total is None:
-                raise ValueError("Provide either 'bs_per_country' or 'num_bs_total'.")
+            # Load country polygons (WGS84)
+            params = self.params
+            self.cell_radius = params.cell_radius
+            self.height = params.height
+            ne = self._load_countries_gdf(params.countries_shapefile)
 
-            if params.population_raster:
-                # Population-based allocation (physical totals; no gamma here)
-                pop_sums = self._country_population_sums(
-                    {n: polys_by_country[n] for n in params.country_names},
-                    params.population_raster,
-                    params.raster_encoding,
-                    params.pixel_area_method,
-                    thr=0.0,                 # keep totals physical
-                    gamma=1.0,
-                    sedac_mode=params.sedac_palette_mode,
-                    sedac_min=params.sedac_min,
-                    sedac_max=params.sedac_max,
-                    index_nodata=effective_index_nodata,
-                    density_range=density_range,  # NEW
-                )
-                total_pop = sum(pop_sums.values())
-                if total_pop > 0:
-                    shares = {n: pop_sums[n] / total_pop for n in params.country_names}
-                    counts = {n: int(np.floor(shares[n] * params.num_bs_total))
-                              for n in params.country_names}
-                    # fix rounding to hit total exactly
-                    deficit = params.num_bs_total - sum(counts.values())
-                    if deficit > 0:
-                        frac_list = sorted(shares.items(), key=lambda x: x[1], reverse=True)
-                        for i in range(deficit):
-                            counts[frac_list[i % len(frac_list)][0]] += 1
+            if not params.country_names:
+                raise ValueError("TopologyCountries: 'country_names' cannot be empty.")
+
+            has_name = "name" in ne.columns
+            has_admin = "ADMIN" in ne.columns
+
+            polys_by_country: Dict[str, MultiPolygon | Polygon] = {}
+            areas: Dict[str, float] = {}
+
+            for name in params.country_names:
+                if has_name and has_admin:
+                    row = ne[(ne["name"] == name) | (ne["ADMIN"] == name)]
+                elif has_name:
+                    row = ne[ne["name"] == name]
+                elif has_admin:
+                    row = ne[ne["ADMIN"] == name]
                 else:
-                    # fallback to area-based if population sums are zero
+                    raise RuntimeError("Countries GeoDataFrame missing 'name'/'ADMIN' columns.")
+
+                if row.empty:
+                    raise ValueError(f"Country '{name}' not found in dataset.")
+
+                geom = unary_union(row.geometry.values)
+
+                # Subtract lakes (geometry-level mask) to avoid inland water
+                if self.params.mask_inland_water:
+                    geom = self._subtract_lakes(geom)
+
+                polys_by_country[name] = geom
+                areas[name] = float(geom.area)
+
+            # Optional: extend index_nodata with "white-ish" bins from ACT
+            effective_index_nodata = self._extend_index_nodata_with_white(
+                self.params.index_nodata, self.params.act_colormap_path, tol=3
+            )
+
+            # NEW: resolve density band once
+            density_range = self._get_density_range()
+
+            # -------- Decide how many BS per country --------
+            if params.bs_per_country:
+                counts = dict(params.bs_per_country)
+
+            else:
+                if params.num_bs_total is None:
+                    raise ValueError("Provide either 'bs_per_country' or 'num_bs_total'.")
+
+                if params.population_raster:
+                    # Population-based allocation (physical totals; no gamma here)
+                    pop_sums = self._country_population_sums(
+                        {n: polys_by_country[n] for n in params.country_names},
+                        params.population_raster,
+                        params.raster_encoding,
+                        params.pixel_area_method,
+                        thr=0.0,                 # keep totals physical
+                        gamma=1.0,
+                        sedac_mode=params.sedac_palette_mode,
+                        sedac_min=params.sedac_min,
+                        sedac_max=params.sedac_max,
+                        index_nodata=effective_index_nodata,
+                        density_range=density_range,  # NEW
+                    )
+                    total_pop = sum(pop_sums.values())
+                    if total_pop > 0:
+                        shares = {n: pop_sums[n] / total_pop for n in params.country_names}
+                        counts = {n: int(np.floor(shares[n] * params.num_bs_total))
+                                for n in params.country_names}
+                        # fix rounding to hit total exactly
+                        deficit = params.num_bs_total - sum(counts.values())
+                        if deficit > 0:
+                            frac_list = sorted(shares.items(), key=lambda x: x[1], reverse=True)
+                            for i in range(deficit):
+                                counts[frac_list[i % len(frac_list)][0]] += 1
+                    else:
+                        # fallback to area-based if population sums are zero
+                        total_area = sum(areas.values())
+                        counts = {n: int(np.floor((areas[n] / total_area) * params.num_bs_total))
+                                for n in params.country_names}
+                        deficit = params.num_bs_total - sum(counts.values())
+                        if deficit > 0:
+                            fracs = sorted(areas.items(), key=lambda x: x[1], reverse=True)
+                            for i in range(deficit):
+                                counts[fracs[i % len(fracs)][0]] += 1
+                else:
+                    # No raster provided: area-based
                     total_area = sum(areas.values())
                     counts = {n: int(np.floor((areas[n] / total_area) * params.num_bs_total))
-                              for n in params.country_names}
+                            for n in params.country_names}
                     deficit = params.num_bs_total - sum(counts.values())
                     if deficit > 0:
                         fracs = sorted(areas.items(), key=lambda x: x[1], reverse=True)
                         for i in range(deficit):
                             counts[fracs[i % len(fracs)][0]] += 1
+
+            # -------- Generate BS positions --------
+            lons, lats, country_ix = [], [], []
+            for name in params.country_names:
+                n = int(counts.get(name, 0))
+                if n <= 0:
+                    continue
+
+                if params.population_raster:
+                    pts_lon, pts_lat = self._sample_points_from_population(
+                        polys_by_country[name],
+                        n,
+                        params.population_raster,
+                        params.raster_encoding,
+                        params.pixel_area_method,
+                        params.min_density_threshold,
+                        params.density_exponent,
+                        params.sedac_palette_mode,
+                        params.sedac_min,
+                        params.sedac_max,
+                        effective_index_nodata,
+                        density_range=density_range,  # NEW
+                    )
+                else:
+                    pts_lon, pts_lat = self._random_points_in_polygon(polys_by_country[name], n)
+
+                lons.extend(pts_lon)
+                lats.extend(pts_lat)
+                country_ix.extend([name] * n)
+
+            self.num_base_stations = len(lons)
+            if self.num_base_stations == 0:
+                raise RuntimeError("TopologyCountries created zero base stations. Check inputs.")
+
+            # Save geodetic positions (for plotting)
+            self.lons = np.array(lons)
+            self.lats = np.array(lats)
+            self.country_index = np.array(country_ix)
+            self.height = np.ones(self.num_base_stations) * self.height
+            # Convert to transformed Cartesian (simulation coordinates)
+            x, y, z = self._lla_to_ecef(self.lats, self.lons, self.height)
+            self.x = np.array(x)
+            self.y = np.array(y)
+            self.z = np.array(z)
+
+            # Azimuth assignment
+            if params.fixed_azimuth is not None:
+                self.azimuth = np.full(self.num_base_stations, float(params.fixed_azimuth))
             else:
-                # No raster provided: area-based
-                total_area = sum(areas.values())
-                counts = {n: int(np.floor((areas[n] / total_area) * params.num_bs_total))
-                          for n in params.country_names}
-                deficit = params.num_bs_total - sum(counts.values())
-                if deficit > 0:
-                    fracs = sorted(areas.items(), key=lambda x: x[1], reverse=True)
-                    for i in range(deficit):
-                        counts[fracs[i % len(fracs)][0]] += 1
-
-        # -------- Generate BS positions --------
-        lons, lats, country_ix = [], [], []
-        for name in params.country_names:
-            n = int(counts.get(name, 0))
-            if n <= 0:
-                continue
-
-            if params.population_raster:
-                pts_lon, pts_lat = self._sample_points_from_population(
-                    polys_by_country[name],
-                    n,
-                    params.population_raster,
-                    params.raster_encoding,
-                    params.pixel_area_method,
-                    params.min_density_threshold,
-                    params.density_exponent,
-                    params.sedac_palette_mode,
-                    params.sedac_min,
-                    params.sedac_max,
-                    effective_index_nodata,
-                    density_range=density_range,  # NEW
-                )
-            else:
-                pts_lon, pts_lat = self._random_points_in_polygon(polys_by_country[name], n)
-
-            lons.extend(pts_lon)
-            lats.extend(pts_lat)
-            country_ix.extend([name] * n)
-
-        self.num_base_stations = len(lons)
-        if self.num_base_stations == 0:
-            raise RuntimeError("TopologyCountries created zero base stations. Check inputs.")
-
-        # Save geodetic positions (for plotting)
-        self.lons = np.array(lons)
-        self.lats = np.array(lats)
-        self.country_index = np.array(country_ix)
-        self.height = np.ones(self.num_base_stations) * self.height
-        # Convert to transformed Cartesian (simulation coordinates)
-        x, y, z = self._lla_to_ecef(self.lats, self.lons, self.height)
-        self.x = np.array(x)
-        self.y = np.array(y)
-        self.z = np.array(z)
-
-        # Azimuth assignment
-        if params.fixed_azimuth is not None:
-            self.azimuth = np.full(self.num_base_stations, float(params.fixed_azimuth))
-        else:
-            self.azimuth = self.rng.uniform(-180.0, 180.0, size=self.num_base_stations)
+                self.azimuth = self.rng.uniform(-180.0, 180.0, size=self.num_base_stations)
 
         # Placeholders for StationFactory expectations
         self.elevation = np.zeros(self.num_base_stations)
@@ -664,6 +686,7 @@ if __name__ == "__main__":
     from matplotlib.patches import Wedge
     from collections import Counter
     from pathlib import Path
+    
     # ============ User-defined inputs ============
     num_bs = 5000
     rng_seed = 42
@@ -673,7 +696,8 @@ if __name__ == "__main__":
     shapefile_path = Path.cwd() / "sharc" / "topology" / "map" / "ne_110m_admin_0_countries.shp"
 
     # Population raster (set to None to sample uniformly by area)
-    population_raster_path = Path.cwd() / "sharc" / "topology" / "map" / "SEDAC_map2.tiff"
+    population_raster_path = None
+    # population_raster_path = Path.cwd() / "sharc" / "topology" / "map" / "SEDAC_map2.tiff"
     # Raster type:
     #   "density" = people per km² (e.g., GPWv4 density GeoTIFF)
     #   "count"   = people per pixel
@@ -738,6 +762,15 @@ if __name__ == "__main__":
     # dist_density_min = 300.0
     # dist_density_max = 10000.0
 
+    # Database approach
+    # Create a database instance
+    database = Database(
+        database_file_name='sharc/campaigns/Guarulhos_database/aux_files/Database_Anatel_FULL.csv',
+        delimiter='\t'
+    )
+    database.load_parameters_from_database()
+
+
     # ============ Build topology ============
 
 
@@ -753,7 +786,8 @@ if __name__ == "__main__":
         raster_encoding=raster_encoding,
         sedac_palette_mode=sedac_palette_mode,
         pixel_area_method="spherical",
-
+        database=database,
+        from_db=True,
         # NEW: band settings
         dist_type=dist_type,
     )
