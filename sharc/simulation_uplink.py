@@ -43,7 +43,6 @@ class SimulationUplink(Simulation):
         if self.parameters.database.database_loaded:
 
             chunk_i = int(snapshot_number) // self.parameters.database.chunks_size
-            self.topology.point_to_ith_chunk( chunk_i, self.parameters.database.chunks_size )
             self.parameters.database.point_to_ith_subset( chunk_i )
 
         # In case of hotspots, base stations coordinates have to be calculated

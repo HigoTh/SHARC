@@ -286,7 +286,7 @@ class ParametersTest(unittest.TestCase):
         self.assertEqual(self.parameters.database.delimiter, '\t')
         self.assertEqual(self.parameters.database.num_subsets, 1)
         self.assertEqual(self.parameters.database.from_db_topology_countries, False)
-        self.assertEqual(self.parameters.database.from_db_topology_gen_macrocell, True)
+        self.assertEqual(self.parameters.database.from_db_topology_gen_macrocell, False)
         self.assertEqual(self.parameters.database.from_db_antenna_params, False)
 
         """

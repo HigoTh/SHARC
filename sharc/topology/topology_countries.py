@@ -77,10 +77,13 @@ class TopologyCountries(Topology):
     def calculate_coordinates(self,
                             random_number_gen: np.random.RandomState | None = None) -> "TopologyCountries":
         
+        
         if self.database.from_db_topology_countries:
             
-            df = self.database.database.database_df
+            params = self.params
+            self.cell_radius = params.cell_radius
 
+            df = self.database.database.database_df
             self.lons = df['longitude'].to_numpy()
             self.lats = df['latitude'].to_numpy()
             self.height = df['altura'].to_numpy()
@@ -91,6 +94,16 @@ class TopologyCountries(Topology):
             self.x = np.array(x)
             self.y = np.array(y)
             self.z = np.array(z)
+
+            # Azimuth assignment
+            if params.fixed_azimuth is not None:
+                self.azimuth = np.full(self.num_base_stations, float(params.fixed_azimuth))
+            else:
+                self.azimuth = df['azimute'].to_numpy()
+
+            self.num_base_stations = len(self.lons)
+            if self.num_base_stations == 0:
+                raise RuntimeError("TopologyCountries created zero base stations. Check inputs.")
 
         else:
             # Load country polygons (WGS84)
@@ -761,12 +774,11 @@ if __name__ == "__main__":
     # Database approach
     # Create a database instance
     params_database = ParametersDatabase.from_direct_params(
-        database_file_name='sharc/campaigns/Guarulhos_database/aux_files/Database_Anatel_FULL.csv',
-        delimiter='\t',
+        database_file_name='sharc/campaigns/FSS_Database/database/Database_Filtr_Unique.csv',
+        delimiter=',',
         from_db_topology_countries=True,
-        num_subsets=100
+        num_subsets=10
     )
-
 
     # ============ Build topology ============
 
