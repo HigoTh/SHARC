@@ -75,7 +75,7 @@ class TopologyFactory(object):
             geoconv.set_reference(coordinate_system.ref_lat, coordinate_system.ref_long, coordinate_system.ref_alt)
             return TopologyCountries(
                 parameters.imt.topology.macrocell_countries,
-                geometry_converter=geoconv
+                geometry_converter=geoconv,
             )
         else:
             sys.stderr.write(

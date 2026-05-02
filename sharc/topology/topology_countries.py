@@ -31,7 +31,7 @@ from sharc.topology.topology import Topology
 from sharc.satellite.ngso.constants import EARTH_DEFAULT_CRS
 from sharc.parameters.imt.parameters_Countries_imt import ParametersCountries
 from sharc.support.sharc_geom_countries import GeometryConverter
-from sharc.parameters.database.parameters_database import Database
+from sharc.parameters.database.parameters_database import Database, ParametersDatabase
 
 _WGS84_A  = 6378137.0                 # semi-major axis [m]
 _WGS84_F  = 1.0 / 298.257223563
@@ -71,25 +71,21 @@ class TopologyCountries(Topology):
         self.azimuth = np.empty(0, dtype=float)
         self.num_base_stations: int = 0
         self.database = params.database
-        self.from_db = params.from_db
         self.rng = random_number_gen if random_number_gen is not None \
             else np.random.RandomState(params.rng_seed)
 
     def calculate_coordinates(self,
                             random_number_gen: np.random.RandomState | None = None) -> "TopologyCountries":
         
-        if self.from_db:
+        if self.database.from_db_topology_countries:
             
-            # Save geodetic positions (for plotting)
-            self.lons = database.database_df_full['longitude'].to_numpy()
-            self.lats = database.database_df_full['latitude'].to_numpy()
-            self.country_index = np.zeros_like(self.lons) # O QUE FAZER?
-            self.height = database.database_df_full['altura'].to_numpy()
+            df = self.database.database.database_df
 
-            self.num_base_stations = len(self.lons)
-            if self.num_base_stations == 0:
-                raise RuntimeError("TopologyCountries created zero base stations. Check inputs.")
-            
+            self.lons = df['longitude'].to_numpy()
+            self.lats = df['latitude'].to_numpy()
+            self.height = df['altura'].to_numpy()
+            self.country_index = np.zeros_like(self.lons, dtype=int)
+
             # Convert to transformed Cartesian (simulation coordinates)
             x, y, z = self._lla_to_ecef(self.lats, self.lons, self.height)
             self.x = np.array(x)
@@ -764,11 +760,12 @@ if __name__ == "__main__":
 
     # Database approach
     # Create a database instance
-    database = Database(
+    params_database = ParametersDatabase.from_direct_params(
         database_file_name='sharc/campaigns/Guarulhos_database/aux_files/Database_Anatel_FULL.csv',
-        delimiter='\t'
+        delimiter='\t',
+        from_db_topology_countries=True,
+        num_subsets=100
     )
-    database.load_parameters_from_database()
 
 
     # ============ Build topology ============
@@ -786,11 +783,11 @@ if __name__ == "__main__":
         raster_encoding=raster_encoding,
         sedac_palette_mode=sedac_palette_mode,
         pixel_area_method="spherical",
-        database=database,
-        from_db=True,
+        database=params_database,
         # NEW: band settings
         dist_type=dist_type,
     )
+
 
     geoconv = GeometryConverter()
     geoconv.set_reference(-15.793889, -47.882778, 0.0)

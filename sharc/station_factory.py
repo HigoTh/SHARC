@@ -63,7 +63,7 @@ from sharc.support.sharc_geom import CoordinateSystem
 from sharc.mask.spectral_mask_imt2030 import SpectralMaskImt2030
 from sharc.support.sharc_utils import wrap2_180
 from sharc.topology.topology_UE_countries import ParametersUECountries, TopologyUECountries
-
+from sharc.parameters.database.parameters_database import ParametersDatabase
 
 class StationFactory(object):
     """
@@ -96,7 +96,6 @@ class StationFactory(object):
             IMT base stations manager object.
         """
 
-        
         from_database = param.database.database_loaded
         param_ant = param_ant_bs.get_antenna_parameters()
         num_bs = topology.num_base_stations
@@ -131,7 +130,7 @@ class StationFactory(object):
             imt_base_stations.height = topology.z
             # Loads elevation values ​​from table if True, otherwise processes 
             # normally
-            if from_database:
+            if param.database.from_db_antenna_params:
                 db_imt_antenna_params = param.database.db_imt_antenna_params
                 imt_base_stations.elevation = \
                     -np.array([param_ant_i.downtilt for param_ant_i in db_imt_antenna_params])
@@ -151,7 +150,7 @@ class StationFactory(object):
             num_bs,
         ) < param.bs.load_probability
 
-        if from_database == True:
+        if param.database.from_db_antenna_params == True:
 
             db_imt_antenna_params = param.database.db_imt_antenna_params
             # Total power
@@ -199,7 +198,8 @@ class StationFactory(object):
 
         # Loads antenna parameters ​​from table if True, otherwise processes 
         # normally
-        if from_database == True:
+        if param.database.from_db_antenna_params == True:
+
             db_imt_antenna_params = param.database.db_imt_antenna_params
             imt_base_stations.antenna = AntennaFactory.create_n_antennas_from_db(
                 param.bs.antenna,

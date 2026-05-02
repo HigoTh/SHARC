@@ -131,7 +131,6 @@ class Parameters(object):
         self.general.num_snapshots = self.general.num_snapshots * self.database.num_subsets
         # Connect topology_countries to database
         self.imt.topology.macrocell_countries.database = self.database
-        self.imt.topology.macrocell_countries.from_db = self.database.database_loaded
 
         #######################################################################
         # MSS_D2d

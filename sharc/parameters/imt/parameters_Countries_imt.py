@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple, Literal
 from sharc.parameters.parameters_base import ParametersBase
-from sharc.parameters.database.parameters_database import Database
+from sharc.parameters.database.parameters_database import ParametersDatabase
 from pathlib import Path
 import os
 
@@ -79,8 +79,7 @@ class ParametersCountries(ParametersBase):
     density_exponent: float = 1.0       # >1 bias toward dense areas
 
     # Database parameters
-    database: Database = None
-    from_db: bool = False
+    database: ParametersDatabase = None
 
     # ----------------- Validação -----------------
     def validate(self) -> None:

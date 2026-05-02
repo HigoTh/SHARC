@@ -50,7 +50,8 @@ class SimulationDownlink(Simulation):
 
         random_number_gen = np.random.RandomState(seed)
 
-        if self.parameters.database.database_loaded and self.parameters.imt.topology.type == "GEN_MACROCELL":
+        # Update database chunk
+        if self.parameters.database.database_loaded:
 
             chunk_i = int(snapshot_number) // self.parameters.database.chunks_size
             self.topology.point_to_ith_chunk( chunk_i, self.parameters.database.chunks_size )
