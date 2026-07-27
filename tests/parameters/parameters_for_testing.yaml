@@ -28,6 +28,33 @@ database:
     delimiter : '\t'
     # Number of database subsets
     num_subsets: 1
+    # Load topology countries from database
+    from_db_topology_countries: FALSE
+    # Load gen_macrocell from database
+    from_db_topology_gen_macrocell: FALSE
+    # Load antenna parameters from database
+    from_db_antenna_params: FALSE
+    # Configures the use of real terrain in the simulation
+    use_real_terrain: FALSE
+    terrain:
+      ###########################################################################
+      # Defines the simulation's input GeoPackage.
+      #   '' (empty)  : Download the simulation GeoPackage based on the latitude 
+      #                 and longitude bounding box of the database. If the file 
+      #                 already exists, given the configured settings, it is loaded.
+      #   PATH/TO/GPKG : Loads the GPKG based on the path.
+      ref_gpkg: ''
+      # Mesh resolution
+      mesh_resolution_m: 1000.0
+      # Dynamic mesh resolution for urban scenarios
+      mesh_urban_res_m: 30
+      # Dynamic mesh resolution for suburban scenarios
+      mesh_suburban_res_m: 150
+      # Dynamic mesh resolution for rural scenarios
+      mesh_rural_res_m: 500
+      # Output directory for geographif files
+      mesh_output_dir: "data"
+    
 imt:
     ###########################################################################
     # Minimum 2D separation distance from BS to UE [m]
@@ -745,6 +772,9 @@ single_earth_station:
             # location.type == UNIFORM_DIST means that the ES will be distributed randomly,
             #                           in a ring shaped section with delimited outer and inner radius
             # location.type == FIXED means that the ES will be always at SAME fixed location
+            #
+            # location.type == FIXED_GEO means that the ES will be always at SAME fixed location 
+            #                           based in a input geographic coordinate                                        
             type: CELL
             ###########################################################################
             # Value of position (x,y) when type == "FIXED" [(m, m)]
@@ -766,6 +796,10 @@ single_earth_station:
                 ###########################################################################
                 # Ring outer radius [m]
                 max_dist_to_center: 102
+            fixed_geo:
+                latitude: -22.9068
+                longitude: -43.1729
+                altitude: 10.0
     antenna:
         ###########################################################################
         # Choose the antenna pattern. Can be one of:

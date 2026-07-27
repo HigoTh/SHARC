@@ -126,6 +126,17 @@ class Parameters(object):
         # Database
         #######################################################################
         self.database.load_parameters_from_file(self.file_name)
+        if self.database.use_real_terrain and self.database.from_db_topology_countries:
+            
+            lat = self.single_earth_station.geometry.location.fixed_geo.latitude
+            lon = self.single_earth_station.geometry.location.fixed_geo.longitude
+            # expand the bbox to include the SES point
+            self.database.expand_bounding_box_to_point(lat, lon)
+            # Precompute ITU 452 path loss
+            self.database.compute_path_losses_p452(lat, lon,self.imt.frequency/1000.0, self.single_earth_station.param_p452)
+            if self.single_earth_station.param_p452.override_from_db:
+                self.single_earth_station.param_p452.database = self.database
+
         # Connect imt parameters to the database
         self.imt.database = self.database
         self.general.num_snapshots = self.general.num_snapshots * self.database.num_subsets

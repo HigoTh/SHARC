@@ -52,8 +52,14 @@ class SimulationDownlink(Simulation):
 
         # Update database chunk
         if self.parameters.database.database_loaded:
-
-            chunk_i = int(snapshot_number) // self.parameters.database.chunks_size
+            n_subsets = self.parameters.database.num_subsets
+            snaps_per_subset = max(
+                1, self.parameters.general.num_snapshots // n_subsets)
+            # snapshot_number is 1-indexed (see Model.snapshot)
+            chunk_i = min(
+                (int(snapshot_number) - 1) // snaps_per_subset,
+                n_subsets - 1)
+            print(chunk_i,snaps_per_subset,n_subsets)
             self.parameters.database.point_to_ith_subset( chunk_i )
 
         # In case of hotspots, base stations coordinates have to be calculated
@@ -454,7 +460,6 @@ class SimulationDownlink(Simulation):
                     0.1 * interference,
                 ),
             )
-            print(np.min(pow_coch) + np.min(self.system_imt_antenna_gain), np.max(pow_coch) + np.max(self.system_imt_antenna_gain))
             # eirp = pow_coch + self.system_imt_antenna_gain
             
             # with open(f"eirp{self.seed}.txt", "ab") as f:

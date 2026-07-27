@@ -774,10 +774,10 @@ if __name__ == "__main__":
     # Database approach
     # Create a database instance
     params_database = ParametersDatabase.from_direct_params(
-        database_file_name='sharc/campaigns/FSS_Database/database/Database_Filtr_Unique.csv',
+        database_file_name='sharc/campaigns/FSS_Database/database/operadoras/db_FULL_F2.csv',
         delimiter=',',
         from_db_topology_countries=True,
-        num_subsets=10
+        num_subsets=1
     )
 
     # ============ Build topology ============

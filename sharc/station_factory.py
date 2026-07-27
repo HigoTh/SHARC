@@ -1242,6 +1242,20 @@ class StationFactory(object):
                 single_earth_station.y = np.array(
                     [param.geometry.location.fixed.y],
                 )
+            case "FIXED_GEO":
+                # Convert geo coordinates to global (x,y,z)-basis
+                x, y, z = _lla_to_ecef(param.geometry.location.fixed_geo.latitude, 
+                    param.geometry.location.fixed_geo.longitude, 
+                    param.geometry.location.fixed_geo.altitude)
+
+                single_earth_station.x = np.array([x])
+                single_earth_station.y = np.array([y])
+                single_earth_station.z = np.array([z])
+
+                # Pass the coordinates to the SES manager object
+                single_earth_station.latitude = np.array([param.geometry.location.fixed_geo.latitude])
+                single_earth_station.longitude = np.array([param.geometry.location.fixed_geo.longitude])
+
             case "CELL":
                 x, y, _, _ = StationFactory.get_random_position(
                     1, topology, random_number_gen,
@@ -1308,6 +1322,11 @@ class StationFactory(object):
                     param.geometry.azimuth.uniform_dist.min, param.geometry.azimuth.uniform_dist.max,
                 ),
             ])
+        elif param.geometry.azimuth.type == "POINTING_AT_IMT_CENTER":
+            single_earth_station.azimuth = np.rad2deg(np.arctan2(
+                -single_earth_station.y,
+                -single_earth_station.x
+            ))
         else:
             single_earth_station.azimuth = np.array(
                 [param.geometry.azimuth.fixed],

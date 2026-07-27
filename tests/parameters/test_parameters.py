@@ -288,6 +288,13 @@ class ParametersTest(unittest.TestCase):
         self.assertEqual(self.parameters.database.from_db_topology_countries, False)
         self.assertEqual(self.parameters.database.from_db_topology_gen_macrocell, False)
         self.assertEqual(self.parameters.database.from_db_antenna_params, False)
+        self.assertEqual(self.parameters.database.use_real_terrain, False)
+        self.assertEqual(self.parameters.database.terrain.ref_gpkg, '')
+        self.assertEqual(self.parameters.database.terrain.mesh_resolution_m, 1000.0)
+        self.assertEqual(self.parameters.database.terrain.mesh_urban_res_m, 30)
+        self.assertEqual(self.parameters.database.terrain.mesh_suburban_res_m, 150)
+        self.assertEqual(self.parameters.database.terrain.mesh_rural_res_m, 500)
+        self.assertEqual(self.parameters.database.terrain.mesh_output_dir, "data")
 
         """
         Test parameters mss dc
@@ -521,6 +528,18 @@ class ParametersTest(unittest.TestCase):
         self.assertEqual(
             self.parameters.single_earth_station.geometry.location.network.min_dist_to_bs,
             150,
+        )
+        self.assertEqual(
+            self.parameters.single_earth_station.geometry.location.fixed_geo.latitude,
+            -22.9068,
+        )
+        self.assertEqual(
+            self.parameters.single_earth_station.geometry.location.fixed_geo.longitude,
+            -43.1729,
+        )
+        self.assertEqual(
+            self.parameters.single_earth_station.geometry.location.fixed_geo.altitude,
+            10.0,
         )
         self.assertEqual(self.parameters.single_earth_station.antenna.gain, 28)
         self.assertEqual(
