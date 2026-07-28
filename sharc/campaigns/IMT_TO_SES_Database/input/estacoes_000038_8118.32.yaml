@@ -1,0 +1,169 @@
+general:
+  num_snapshots: 50
+  imt_link: DOWNLINK
+  system: SINGLE_EARTH_STATION
+  enable_cochannel: true
+  enable_adjacent_channel: false
+  seed: 75
+  overwrite_output: false
+  output_dir: campaigns/IMT_TO_SES_Database/output_dl/
+  output_dir_prefix: IMT_TO_SES_Database_BASE_estacoes_000038
+database:
+  # Path to the database file
+  database_file_name: 'sharc/campaigns/FSS_Database/database/Database_Sul_CentroOeste.csv'
+  ###########################################################################
+  # Database delimiter (for .csv files)
+  delimiter: ','
+  # Number of database subsets
+  num_subsets: 20
+  # Load topology countries from database
+  from_db_topology_countries: true
+  # Configures the use of real terrain in the simulation
+  use_real_terrain: true
+  terrain:
+    ###########################################################################
+    # Defines the simulation's input GeoPackage.
+    #   '' (empty)  : Download the simulation GeoPackage based on the latitude 
+    #                 and longitude bounding box of the database. If the file 
+    #                 already exists, given the configured settings, it is loaded.
+    #   PATH/TO/GPKG : Loads the GPKG based on the path.
+    ref_gpkg: ''
+    # Mesh resolution
+    mesh_resolution_m: 1000.0
+    # Dynamic mesh resolution for urban scenarios
+    mesh_urban_res_m: 35
+    # Dynamic mesh resolution for suburban scenarios
+    mesh_suburban_res_m: 150
+    # Dynamic mesh resolution for rural scenarios
+    mesh_rural_res_m: 500
+    # Output directory for geographif files
+    mesh_output_dir: "data"
+imt:
+  minimum_separation_distance_bs_ue: 35
+  interfered_with: false
+  frequency: 6525
+  bandwidth: 200
+  rb_bandwidth: 0.18
+  guard_band_ratio: 0.1
+  topology:
+    central_latitude: -11
+    central_longitude: -58
+    central_altitude: 200
+    type: Macro_countries
+    macrocell_countries:
+      country_names:
+      - Brazil
+      num_bs_total: 500
+      cell_radius: 800.0
+      rng_seed: 10
+      dist_type: Suburban
+      raster_encoding: indexed
+      height: 20.0
+  bs:
+    load_probability: 0.5
+    conducted_power: 33.997
+    height: 20.0
+    noise_figure: 11 # 6, 11, 14 dB for wide, medium, local area BS
+    ohmic_loss: 0  #1.8 of table 10 and Note 1
+    antenna:
+      array:
+        normalization: false
+        element_pattern: M2101
+        minimum_array_gain: -200
+        horizontal_beamsteering_range: !!python/tuple
+        - -60.0
+        - 60.0
+        vertical_beamsteering_range: !!python/tuple
+        - 90.0
+        - 100.0
+        downtilt: 6
+        element_max_g: 3.65
+        element_phi_3db: 90
+        element_theta_3db: 65
+        n_rows: 8  # Verificar com o Frederico se iremos altrar no caso dos 6 GHz
+        n_columns: 8 # Idem
+        element_horiz_spacing: 0.5
+        element_vert_spacing: 4.2
+        element_am: 30 # Item 1.4 da tabela 10
+        element_sla_v: 30 # Item 1.4 da tabela 10
+        multiplication_factor: 12 # Tablea 3 do Anexo 1 da ITU-R M.2101
+        subarray:
+          is_enabled: true
+          n_rows: 6 # Note 2 Tabela 10, mas não está tão claro quanto na tabela 9, para faixa menor -> 3 após reiunião com Frederico
+          element_vert_spacing: 0.7 # Não está definido na tabela 10, como está na tabela 9 -> 0.7 após resunião com Frederico
+          eletrical_downtilt: 3.0 # Idem.
+  ue:
+    k: 4
+    k_m: 1
+    indoor_percent: 70
+    distribution_type: Macro_Countries
+    tx_power_control: true
+    p_o_pusch: -92.2
+    alpha: 0.8
+    p_cmax: 23
+    power_dynamic_range: 56 ## Verificar
+    height: 1.5
+    noise_figure: 9 #Conferir, mas não impacta a simulação atual.
+    ohmic_loss: 0
+    body_loss: 4 # Variar
+    antenna:
+      array:
+        element_pattern: FIXED
+        element_max_g: -4
+        n_rows: 1
+        n_columns: 1
+  uplink:
+    attenuation_factor: 0.4 # Não achei
+    sinr_min: -10 # Idem
+    sinr_max: 22 # Idem
+  downlink:
+    attenuation_factor: 0.6 #Não achei
+    sinr_min: -10 # Idem
+    sinr_max: 30 #Idem
+  channel_model: UMa
+  shadowing: true
+
+single_earth_station:
+  antenna:
+    gain: 35.2 # Extraído da base
+    itu_r_f_1245_fs:
+      diameter: 4
+      gain: 35.2
+    pattern: ITU-R F.1245_fs
+  bandwidth: 29.6 # Extraído da base
+  channel_model: P452
+  frequency: 8118.32 # Extraído da base
+  polarization_loss: 0
+  geometry:
+    azimuth:
+      fixed: 173.0  # Extraído da base
+      type: FIXED
+    elevation:
+      fixed: 0
+      type: FIXED
+    height: 27.0
+    location:
+      type: FIXED_GEO
+      fixed_geo:
+        latitude: -27.71333333 # Extraído da base
+        longitude: -55.15693889 # Extraído da base
+        altitude: 316.0 # Extraído da base
+  noise_temperature: 513
+  param_p452:
+    Dcr: 101.0
+    Dct: 100.0
+    Hre: 60
+    Hte: 18
+    N0: 352.58
+    air_temperature: 293.15
+    atmospheric_pressure: 1017
+    clutter_loss: false
+    delta_N: 60
+    percentage_p: 1.0
+    polarization: vertical
+    rx_lat: -27.71333333 # Extraído da base
+    tx_lat: -15.46 # Extraído da base
+    clutter_type: "both_ends"
+    is_terrain: true
+    override_from_db: true
+  tx_power_density: -200

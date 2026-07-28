@@ -105,4 +105,15 @@ sharc/campaigns/mss_d2d_to_imt/output/*.yaml
 /sharc/campaigns/radalt_study_database/*
 /sharc/campaigns/09_Guarulhos_dB/*
 /sharc/campaigns/09_Guarulhos/*
+/sharc/campaigns/Guarulhos_database/aux_files
+/sharc/campaigns/Guarulhos_database/output_dl
+/sharc/campaigns/Guarulhos_database/input
+/sharc/campaigns/FSS_Database/
+/sharc/campaigns/FSS_Database/
+/sharc/campaigns/old_campaigns/
+/sharc/campaigns/IMT_TO_SES_Database/output_dl/
+/sharc/campaigns/IMT_TO_SES_Database/qgis/
+
 /logs/*
+/sharc/propagation/real_terrain/data
+/sharc/propagation/real_terrain/tile_cache
